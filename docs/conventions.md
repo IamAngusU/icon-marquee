@@ -7,6 +7,7 @@ See `docs/architecture.md` for the stack, layout and request flow.
 - Each route module lives in `src/routes/<name>/index.ts` and exports a `Hono` instance named `<name>Routes`.
 - Register it in `src/routes/index.ts` with `routes.route("/<path>", <name>Routes)`.
 - Do not expose internal details (app name, env values) in responses.
+- Tests sit next to the route as `index.test.ts` and call the module with `routes.request()`, without starting a server.
 
 ## Config and env
 
@@ -30,8 +31,9 @@ See `docs/architecture.md` for the stack, layout and request flow.
 | `bun run lint` | Biome lint |
 | `bun run format` | Biome format with writes |
 | `bun run check` | Biome lint, format and import sorting with writes |
+| `bun test` | Run tests |
 
 ## Before finishing work
 
-- Run `bun run typecheck` and `bun run check`.
+- Run `bun run typecheck`, `bun run check` and `bun test`.
 - Start the server and hit the changed endpoints.

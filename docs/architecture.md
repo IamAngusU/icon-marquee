@@ -14,6 +14,10 @@
 src/
 ├── index.ts          # app entry: creates the app, mounts versioned routes
 ├── config.ts         # env-backed config
+├── icons/
+│   ├── aliases.ts    # short names (js, ts, wasm…) to icon folder names
+│   ├── registry.ts   # indexes public/icons at startup, resolves names to files
+│   └── render.ts     # lays out icon SVGs in one row
 └── routes/
     ├── index.ts      # combines route modules
     └── <name>/
@@ -34,6 +38,15 @@ public/
 Icons come from [LelouchFR/skill-icons](https://github.com/LelouchFR/skill-icons) (MIT, commit `5401d69`). Upstream `assets/<name>-<variant>.svg` maps to `public/icons/<name>/<variant>.svg`, and an upstream file with no variant suffix becomes `default.svg`. An icon has either the three themed variants or a single `default.svg`.
 
 `public/icons` is excluded from Biome.
+
+## Endpoints
+
+| Method | Path | Does |
+| --- | --- | --- |
+| GET | `/v1` | Health check |
+| GET | `/v1/icons?i=js,html,css` | One SVG with the requested icons in a row, in request order |
+
+`/v1/icons` accepts icon folder names or short names from `src/icons/aliases.ts`, up to 100 per request. It serves `auto.svg` when an icon has theme variants, otherwise `default.svg`. Rows are 48px tall, with icons 256 units wide and a 44-unit gap. Unknown names return 400 and list the bad names. Names resolve only through the startup index, so no request path reaches the filesystem directly.
 
 ## Request flow
 
