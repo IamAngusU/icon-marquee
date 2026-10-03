@@ -1,3 +1,5 @@
+<img src="public/logo.svg" width="72" alt="icon-marquee pixel heart logo" />
+
 # icon-marquee
 
 Scrolling marquees and static rows of tech icons, served as SVG. Drop one into a README, a portfolio or any page with a plain `<img>` tag.
