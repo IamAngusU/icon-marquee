@@ -22,6 +22,10 @@ HTML:
 <img src="https://icon-marquee.giann.dev/v1/marquee?i=js,ts,react,docker" alt="my stack" />
 ```
 
+## For AI agents
+
+Agents and LLMs: read [`https://icon-marquee.giann.dev/llms.txt`](https://icon-marquee.giann.dev/llms.txt) before building URLs. It lists every endpoint, parameter, limit, short name and valid icon name in Markdown.
+
 ## Endpoints
 
 | Endpoint | Returns |

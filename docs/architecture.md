@@ -14,6 +14,7 @@
 src/
 ├── index.ts          # app entry: mounts the landing page at / and the API at /v1
 ├── landing/          # landing page HTML, styles, client script and logo
+├── llms/             # builds /llms.txt from config and the icon index
 ├── config.ts         # env-backed config
 ├── utils/
 │   ├── load.ts       # parses the `i` query, validates and reads icon SVGs
@@ -48,6 +49,7 @@ Icons come from [LelouchFR/skill-icons](https://github.com/LelouchFR/skill-icons
 | --- | --- | --- |
 | GET | `/` | Landing page with a live marquee and a playground |
 | GET | `/logo.svg` | Pixel heart logo, also the favicon |
+| GET | `/llms.txt` | Markdown usage guide for LLMs |
 | GET | `/v1` | Health check |
 | GET | `/v1/icons?i=js,html,css` | One SVG with the requested icons in a row, in request order |
 | GET | `/v1/marquee?i=js,html,css&width=800` | Animated SVG scrolling the same row in a loop. `width` is optional. |
@@ -72,9 +74,13 @@ Each icon's ids, and every reference to them, are prefixed with `i<index>-` when
 - Settings are in `config.landing`: repo URL, hero and playground icons, hero width and cache lifetime.
 - The hero requests the marquee at `config.landing.heroWidthPx` (3840) and crops it to the viewport with `object-fit: cover`, so it spans the full width on any screen.
 
+## llms.txt
+
+`GET /llms.txt` follows the [llms.txt](https://llmstxt.org) convention: Markdown that tells an LLM how to call the API. `src/llms/index.ts` builds it from `config` and the icon index, so limits, short names and the full icon list always match the running API. Example URLs use the request's origin, so they are correct locally and in production. It is served as `text/plain; charset=utf-8` because some agent fetchers reject `text/markdown`. The landing page links it from its footer and with `<link rel="alternate" type="text/plain">`.
+
 ## Request flow
 
-1. `src/index.ts` creates the root `Hono` app, mounts the landing page at `/` and `routes` at `/v1`. Bun serves its default export.
+1. `src/index.ts` creates the root `Hono` app, mounts the landing page and `/llms.txt` at `/`, and `routes` at `/v1`. Bun serves its default export.
 2. `src/routes/index.ts` mounts each route module at its path.
 3. Each route module under `src/routes/<name>/` handles its own endpoints.
 

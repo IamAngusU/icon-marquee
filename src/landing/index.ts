@@ -18,6 +18,7 @@ export const landingPage = `<!doctype html>
 <meta name="description" content="Scrolling marquees and static rows of tech icons, served as SVG. Drop one into any README with a plain img tag." />
 <meta name="color-scheme" content="dark" />
 <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+<link rel="alternate" type="text/plain" href="/llms.txt" title="LLM usage guide" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Libre+Baskerville:ital@0;1&display=swap" />
@@ -95,7 +96,7 @@ export const landingPage = `<!doctype html>
     </section>
 
     <footer>
-      <span>Icons by <a href="https://github.com/LelouchFR/skill-icons">skill-icons</a> (MIT) · <a href="${repoUrl}">Source</a> · MIT license</span>
+      <span>Icons by <a href="https://github.com/LelouchFR/skill-icons">skill-icons</a> (MIT) · <a href="${repoUrl}">Source</a> · <a href="/llms.txt">llms.txt</a> · MIT license</span>
       <a class="credit" href="${authorUrl}" target="_blank" rel="noopener">another thing by <span class="credit-name">giann.dev</span></a>
     </footer>
   </div>

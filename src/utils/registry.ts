@@ -21,3 +21,5 @@ export function resolveIconPath(name: string): string | undefined {
 }
 
 export const iconCount = iconPaths.size;
+
+export const iconNames: readonly string[] = [...iconPaths.keys()].sort();
