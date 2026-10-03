@@ -38,11 +38,19 @@ describe("GET /marquee", () => {
     expect(res.status).toBe(400);
   });
 
-  test("rejects unknown icons and names them", async () => {
-    const res = await marqueeRoutes.request("/?i=js,nope");
+  test("skips unknown icons and lists them in a header", async () => {
+    const res = await marqueeRoutes.request("/?i=js,nope,ts");
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get("X-Unknown-Icons")).toBe("nope");
+    expect((await res.text()).match(/<g transform=/g)).toHaveLength(4);
+  });
+
+  test("rejects a request where no icon is known", async () => {
+    const res = await marqueeRoutes.request("/?i=nope,nah");
 
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: "Unknown icons: nope" });
+    expect(await res.json()).toEqual({ error: "No known icons: nope, nah" });
   });
 
   test("rejects more than 100 icons", async () => {

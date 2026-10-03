@@ -87,6 +87,7 @@ Behaviour of the `i` list:
 - **Case and spaces** are ignored: `i=JS, TS` works.
 - **Duplicates** are allowed: `i=js,js,js` renders three.
 - **Limit:** at most 100 icons per request.
+- **Unknown names** are skipped, so a typo costs one icon, not the whole image. The skipped names are listed in the `X-Unknown-Icons` response header. If no name is known, the request fails with 400.
 - **Names:** use any icon name from the [full list](#available-icons) or a [short name](#short-names).
 
 ## Theme

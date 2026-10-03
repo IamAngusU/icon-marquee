@@ -1,4 +1,5 @@
 import { config } from "../config";
+import { UNKNOWN_ICONS_HEADER } from "../utils/respond";
 
 const ALT = JSON.stringify(config.landing.snippetAlt);
 
@@ -40,12 +41,15 @@ export const script = `
         status.textContent = body.error || "Something went wrong.";
         return;
       }
+      const skipped = res.headers.get("${UNKNOWN_ICONS_HEADER}");
+      status.textContent = skipped
+        ? "Skipped unknown icons: " + skipped.split(",").map(decodeURIComponent).join(", ")
+        : "";
     } catch {
       if (id === requestId) status.textContent = "Network error.";
       return;
     }
     const url = location.origin + path;
-    status.textContent = "";
     preview.src = path;
     fields.markdown.textContent = "![" + alt + "](" + url + ")";
     fields.html.textContent = '<img src="' + url + '" alt="' + alt + '" />';

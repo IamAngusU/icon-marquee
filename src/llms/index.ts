@@ -33,7 +33,8 @@ Query parameters:
 ## Responses
 
 - 200 \`image/svg+xml\`, cached for ${icons.cacheMaxAgeS} seconds.
-- 400 \`application/json\` \`{"error": "..."}\` when \`i\` is missing or empty, has more than ${icons.maxPerRequest} names, contains unknown names (all are listed in the message), or \`width\` is invalid.
+- Unknown names are skipped: the response is still 200 with the known icons, and the skipped names are listed, URL-encoded and comma-separated, in the \`X-Unknown-Icons\` response header.
+- 400 \`application/json\` \`{"error": "..."}\` when \`i\` is missing or empty, has more than ${icons.maxPerRequest} names, contains no known name, or \`width\` is invalid.
 
 ## Theme
 
@@ -58,7 +59,7 @@ Static row:
 
 ## Usage notes for LLMs
 
-- Only use names from the lists below; anything else returns 400.
+- Only use names from the lists below. Unknown names are silently dropped from the image, so check the \`X-Unknown-Icons\` header when you verify a URL.
 - Prefer short names where they exist (e.g. \`js\`, \`ts\`, \`py\`, \`k8s\`).
 - Commas in \`i\` work literal or encoded. A literal \`+\` becomes a space, so encode it: \`notepad%2B%2B\`.
 

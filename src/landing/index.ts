@@ -84,7 +84,7 @@ export const landingPage = `<!doctype html>
         </li>
         <li class="reveal">
           <h3><code>i</code></h3>
-          <p>Comma-separated icon names or short names. Case and spaces are ignored, and duplicates are allowed.</p>
+          <p>Comma-separated icon names or short names. Case and spaces are ignored, duplicates are allowed, and unknown names are skipped.</p>
           <p class="meta">Required · up to ${config.icons.maxPerRequest}</p>
         </li>
         <li class="reveal">

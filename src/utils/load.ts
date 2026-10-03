@@ -3,7 +3,9 @@ import { resolveIconPath } from "./registry";
 
 const MAX_ICONS = config.icons.maxPerRequest;
 
-export type LoadIconsResult = { svgs: string[] } | { error: string };
+export type LoadIconsResult =
+  | { svgs: string[]; unknown: string[] }
+  | { error: string };
 
 export async function loadIcons(
   param: string | undefined,
@@ -20,12 +22,12 @@ export async function loadIcons(
     return { error: `At most ${MAX_ICONS} icons per request` };
   }
 
+  const paths = names.flatMap((name) => resolveIconPath(name) ?? []);
   const unknown = names.filter((name) => !resolveIconPath(name));
-  if (unknown.length > 0) {
-    return { error: `Unknown icons: ${unknown.join(", ")}` };
+  if (paths.length === 0) {
+    return { error: `No known icons: ${unknown.join(", ")}` };
   }
 
-  const paths = names.flatMap((name) => resolveIconPath(name) ?? []);
   const svgs = await Promise.all(paths.map((path) => Bun.file(path).text()));
-  return { svgs };
+  return { svgs, unknown };
 }
