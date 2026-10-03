@@ -1,8 +1,9 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { config } from "../config";
 
-const ICONS_DIR = join(import.meta.dir, "../../public/icons");
+const ICONS_DIR = fileURLToPath(new URL("../../public/icons", import.meta.url));
 
 // Icon folder name -> path of the SVG served for it.
 const iconPaths: ReadonlyMap<string, string> = new Map(

@@ -74,3 +74,13 @@ All endpoints live under `/v1`. A new API version is a separate route tree mount
 
 - Biome handles linting, formatting and import sorting, configured in `biome.json`.
 - The Husky pre-commit hook runs `tsc --noEmit`, then `biome check --write` on staged files, and re-stages fixes.
+
+## Deployment
+
+Deployed on Vercel with the zero-config Hono preset, which picks up `src/index.ts`.
+
+- `vercel.json` sets `bunVersion` so the function runs on Bun. The code uses `Bun.file`, so it does not run on Vercel's default Node runtime.
+- `public/icons` reaches the function through Vercel's file tracing. The tracer follows `new URL("../../public/icons", import.meta.url)` in `src/utils/registry.ts`, but not `import.meta.dir`, so keep the `import.meta.url` form. `includeFiles` in `vercel.json` has no effect with the Hono preset.
+- `tsconfig.json` sets `typeRoots`. Vercel transpiles through a temporary tsconfig in `/tmp` that extends ours, and without `typeRoots` it cannot find `types: ["bun"]`.
+- `APP_NAME` must be set in the Vercel project's environment variables, or the function fails at startup.
+- Check a build locally with `bunx vercel build`. It needs `.vercel/project.json`, which `vercel link` or `vercel pull` creates.
