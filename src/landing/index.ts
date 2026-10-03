@@ -96,7 +96,7 @@ export const landingPage = `<!doctype html>
     </section>
 
     <footer>
-      <span>Icons by <a href="https://github.com/LelouchFR/skill-icons">skill-icons</a> (MIT) · <a href="${repoUrl}">Source</a> · <a href="/llms.txt">llms.txt</a> · MIT license</span>
+      <span>Icons by <a href="https://github.com/syvixor/skills-icons">skills-icons</a> (MIT) · <a href="${repoUrl}">Source</a> · <a href="/llms.txt">llms.txt</a> · MIT license</span>
       <a class="credit" href="${authorUrl}" target="_blank" rel="noopener">another thing by <span class="credit-name">giann.dev</span></a>
     </footer>
   </div>

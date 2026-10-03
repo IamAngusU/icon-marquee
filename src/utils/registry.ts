@@ -5,15 +5,16 @@ import { config } from "../config";
 
 const ICONS_DIR = fileURLToPath(new URL("../../public/icons", import.meta.url));
 
-// Icon folder name -> path of the SVG served for it.
+const SVG_EXTENSION = ".svg";
+
+// Icon name -> path of its SVG file.
 const iconPaths: ReadonlyMap<string, string> = new Map(
-  readdirSync(ICONS_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => {
-      const files = readdirSync(join(ICONS_DIR, entry.name));
-      const file = files.includes("auto.svg") ? "auto.svg" : "default.svg";
-      return [entry.name, join(ICONS_DIR, entry.name, file)];
-    }),
+  readdirSync(ICONS_DIR)
+    .filter((file) => file.endsWith(SVG_EXTENSION))
+    .map((file) => [
+      file.slice(0, -SVG_EXTENSION.length),
+      join(ICONS_DIR, file),
+    ]),
 );
 
 export function resolveIconPath(name: string): string | undefined {

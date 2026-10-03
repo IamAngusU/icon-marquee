@@ -6,7 +6,7 @@ Scrolling marquees and static rows of tech icons, served as SVG. Drop one into a
 
 [![icon marquee](https://icon-marquee.giann.dev/v1/marquee?i=js,ts,react,nextjs,svelte,vue,tailwind,bun,nodejs,docker,postgres,redis,go,rust,python)](https://icon-marquee.giann.dev/v1/marquee?i=js,ts,react,nextjs,svelte,vue,tailwind,bun,nodejs,docker,postgres,redis,go,rust,python)
 
-Icons come from [skill-icons](https://github.com/LelouchFR/skill-icons). See [Credits](#credits).
+Icons come from [skills-icons](https://github.com/syvixor/skills-icons). See [Credits](#credits).
 
 ## Quick start
 
@@ -99,93 +99,194 @@ Icons that have light and dark versions switch automatically with the viewer's s
 
 | Short name | Icon |
 | --- | --- |
-| `ae` | `aftereffects` |
-| `ai` | `illustrator` |
-| `amazonwebservices` | `aws` |
-| `an` | `animate` |
-| `ar` | `aero` |
+| `access` | `microsoftaccess` |
+| `acrobat` | `adobeacrobat` |
+| `adianti` | `adiantiframework` |
+| `adonis` | `adonisjs` |
+| `ae` | `adobeaftereffects` |
+| `aftereffects` | `adobeaftereffects` |
+| `ai` | `adobeillustrator` |
+| `amber` | `amberlang` |
+| `angular` | `angularjs` |
+| `antigravity` | `googleantigravity` |
 | `arc` | `arcbrowser` |
+| `arch` | `archlinux` |
 | `asm` | `assembly` |
-| `au` | `audition` |
-| `be` | `behance` |
+| `au` | `adobeaudition` |
+| `audition` | `adobeaudition` |
+| `aws` | `amazonwebservices` |
+| `batchfile` | `batch` |
+| `batchscript` | `batch` |
+| `beam` | `apachebeam` |
+| `beef` | `beeflang` |
+| `beekeeper` | `beekeeperstudio` |
+| `bigquery` | `googlebigquery` |
 | `bots` | `discordbots` |
-| `br` | `bridge` |
-| `ca` | `capture` |
-| `cc` | `creativecloud` |
+| `budgiedesktop` | `buddiesofbudgie` |
+| `c4d` | `cinema4d` |
+| `caddy` | `caddyserver` |
+| `capacitor` | `capacitorjs` |
 | `cf` | `cloudflare` |
-| `ch` | `characteranimator` |
-| `dn` | `dimension` |
-| `dw` | `dreamweaver` |
+| `chrome` | `googlechrome` |
+| `clipchamp` | `microsoftclipchamp` |
+| `cloudcomposer` | `googlecloudcomposer` |
+| `cloudfirestore` | `firebasecloudfirestore` |
+| `cloudstorage` | `googlecloudstorage` |
+| `computeengine` | `googlecomputeengine` |
+| `copilot` | `microsoftcopilot` |
+| `csp` | `clipstudiopaint` |
+| `cudacpp` | `cudacplusplus` |
+| `d` | `dlang` |
+| `d3` | `d3js` |
+| `dataflow` | `googledataflow` |
+| `dataproc` | `googledataproc` |
+| `davinci` | `davinciresolve` |
+| `docs` | `googledocs` |
+| `dreamweaver` | `adobedreamweaver` |
+| `drf` | `djangorestframework` |
+| `drive` | `googledrive` |
+| `dvc` | `dataversioncontrol` |
+| `dw` | `adobedreamweaver` |
+| `elysia` | `elysiajs` |
+| `ember` | `emberjs` |
+| `entra` | `microsoftentra` |
+| `es` | `elasticsearch` |
+| `excel` | `microsoftexcel` |
 | `express` | `expressjs` |
-| `fr` | `fresco` |
-| `fs` | `fuse` |
+| `fabric` | `microsoftfabric` |
+| `fasm` | `flatassembler` |
+| `fb` | `facebook` |
+| `firebaseai` | `firebaseailogic` |
+| `firebasecloud` | `firebasecloudfirestore` |
+| `foundry` | `microsoftfoundry` |
+| `fs` | `fusejs` |
+| `fsd` | `featuresliceddesign` |
+| `fuse` | `fusejs` |
+| `gadsense` | `googleadsense` |
 | `gatsbyjs` | `gatsby` |
+| `gcloud` | `googlecloud` |
+| `gcp` | `googlecloud` |
+| `gemini` | `googlegemini` |
+| `gh` | `github` |
 | `ghactions` | `githubactions` |
+| `ghcopilot` | `githubcopilot` |
+| `ghpages` | `githubpages` |
 | `go` | `golang` |
-| `googlecloud` | `gcp` |
 | `gql` | `graphql` |
-| `hc` | `holyc` |
+| `grunt` | `gruntjs` |
+| `hadoop` | `apachehadoop` |
 | `hf` | `huggingface` |
-| `ic` | `incopy` |
-| `id` | `indesign` |
-| `jq` | `jqlang` |
+| `hive` | `apachehive` |
+| `hop` | `apachehop` |
+| `htb` | `hackthebox` |
+| `id` | `adobeindesign` |
+| `idx` | `googleidx` |
+| `ig` | `instagram` |
+| `illustrator` | `adobeillustrator` |
+| `indesign` | `adobeindesign` |
+| `inertia` | `inertiajs` |
+| `intellij` | `intellijidea` |
+| `intune` | `microsoftintune` |
+| `jmeter` | `apachejmeter` |
 | `js` | `javascript` |
+| `jsr` | `javascriptregistry` |
 | `k8s` | `kubernetes` |
+| `kali` | `kalilinux` |
 | `ktorio` | `ktor` |
-| `lr` | `lightroom` |
-| `lrc` | `lightroomclassic` |
+| `lightroom` | `adobelightroom` |
+| `looker` | `lookerstudio` |
+| `lottie` | `lottiefiles` |
+| `lr` | `adobelightroom` |
+| `manifold` | `manifoldjs` |
+| `maven` | `apachemaven` |
+| `mcp` | `modelcontextprotocol` |
 | `md` | `markdown` |
-| `me` | `mediaencoder` |
-| `million` | `millionjs` |
 | `mongo` | `mongodb` |
 | `mui` | `materialui` |
+| `myshell` | `myshellai` |
 | `nest` | `nestjs` |
 | `net` | `dotnet` |
 | `next` | `nextjs` |
+| `nextauth` | `authjs` |
 | `nix` | `nixos` |
-| `notepad++` | `notepadpp` |
+| `node` | `nodejs` |
+| `notepad++` | `notepadplusplus` |
+| `notepadpp` | `notepadplusplus` |
 | `nuxt` | `nuxtjs` |
-| `pf` | `portfolio` |
-| `pl` | `prelude` |
+| `objc` | `objectivec` |
+| `oci` | `oraclecloudinfrastructure` |
+| `office` | `microsoftoffice` |
+| `onedrive` | `microsoftonedrive` |
+| `onenote` | `microsoftonenote` |
+| `ood` | `openondemand` |
+| `otel` | `opentelemetry` |
+| `outlook` | `microsoftoutlook` |
+| `oxfmt` | `oxc` |
+| `oxlint` | `oxc` |
+| `pb` | `pocketbase` |
+| `photoshop` | `adobephotoshop` |
 | `pop` | `popos` |
 | `postgres` | `postgresql` |
-| `pr` | `premiere` |
-| `ps` | `photoshop` |
-| `psc` | `photoshopclassic` |
-| `psx` | `photoshopexpress` |
+| `powerautomate` | `microsoftpowerautomate` |
+| `powerpoint` | `microsoftpowerpoint` |
+| `premierepro` | `adobepremierepro` |
+| `project` | `microsoftproject` |
+| `ps` | `adobephotoshop` |
 | `pwsh` | `powershell` |
 | `py` | `python` |
+| `pyspark` | `apachespark` |
+| `rails` | `rubyonrails` |
+| `react` | `reactjs` |
+| `regle` | `reglejs` |
 | `rollup` | `rollupjs` |
-| `ru` | `premiererush` |
-| `rxjava` | `reactivex` |
-| `rxjs` | `reactivex` |
+| `ros` | `robotoperatingsystem` |
+| `s3` | `amazons3` |
 | `sc` | `scala` |
+| `sclearn` | `scikitlearn` |
 | `scss` | `sass` |
+| `sdl` | `simpledirectmedialayer` |
+| `sharepoint` | `microsoftsharepoint` |
+| `sheets` | `googlesheets` |
 | `sklearn` | `scikitlearn` |
-| `sp` | `adobespark` |
+| `so` | `stackoverflow` |
+| `solid` | `solidjs` |
+| `spark` | `apachespark` |
 | `sqla` | `sqlalchemy` |
-| `st` | `stock` |
+| `stan` | `stanjs` |
+| `synapse` | `azuresynapse` |
 | `tailwind` | `tailwindcss` |
+| `teams` | `microsoftteams` |
+| `truenas` | `truenascore` |
 | `ts` | `typescript` |
-| `twitter` | `x` |
+| `tseslint` | `typescripteslint` |
 | `unreal` | `unrealengine` |
-| `vb` | `visualbasic` |
-| `vlang` | `v` |
+| `upstage` | `upstageai` |
+| `uv` | `astraluv` |
+| `visio` | `microsoftvisio` |
+| `vscode` | `visualstudiocode` |
+| `vscodeinsiders` | `visualstudiocodeinsiders` |
 | `vue` | `vuejs` |
+| `wasdk` | `windowsappsdk` |
 | `wasm` | `webassembly` |
 | `windi` | `windicss` |
+| `word` | `microsoftword` |
+| `workspace` | `googleworkspace` |
+| `wp` | `wordpress` |
+| `ws` | `websocket` |
+| `xd` | `adobexd` |
 | `yml` | `yaml` |
+| `yt` | `youtube` |
 
-Full icon names also work, e.g. `i=javascript` is the same as `i=js`.
+Full icon names also work, e.g. `i=javascript` is the same as `i=js`. Names that changed when icon-marquee switched icon sets (e.g. `react` → `reactjs`, `photoshop` → `adobephotoshop`) are kept as short names, so existing URLs that use them still work.
 
 ## Available icons
 
-834 icons, 624 of them themed.
+1041 icons, 767 of them themed.
 
 <details>
 <summary>Show all icon names</summary>
 
-`aave`*, `ableton`*, `acrobat`, `activitypub`*, `actix`*, `adobespark`, `adonis`, `aero`, `affinity`, `aftereffects`, `agno`, `aiogram`*, `airbyte`*, `airflow`*, `aiscript`*, `alacritty`*, `alchemy`*, `alpinejs`*, `amplify`, `anaconda`*, `android`*, `androidstudio`*, `angular`*, `animate`, `animejs`*, `anki`*, `ansible`, `ansys`*, `antdesign`*, `apache`*, `apeworx`*, `apexcharts`*, `api`*, `apidog`*, `apigateway`, `apollo`, `appactive`*, `appcode`*, `apple`*, `appstore`, `apptainer`*, `appwrite`*, `aqua`*, `arcbrowser`*, `arch`*, `arcjet`*, `arduino`, `argocd`*, `arrow`*, `aseprite`*, `assembly`, `astro`, `athena`, `atom`, `audacity`*, `audition`, `aurora`, `authenticator`*, `authjs`*, `autocad`*, `avaloniaui`, `aws`*, `axios`*, `azul`, `azure`*, `azuredevops`*, `babel`, `balancer`*, `barbajs`, `bash`*, `beam`*, `beeceptor`*, `behance`, `behat`*, `betterauth`*, `bevy`*, `bigquery`*, `biome`*, `bitbucket`*, `bitrix24`*, `blazor`*, `blender`*, `bluesky`*, `bokeh`*, `bootstrap`, `brave`*, `breeze`, `bridge`, `bsd`*, `btlo`*, `bulma`*, `bun`*, `burn`*, `burpsuite`*, `c`, `cachyos`*, `caddy`*, `cairo`*, `canva`*, `capacitor`*, `capture`, `cashier`, `cassandra`*, `catppuccin`*, `celerdata`*, `celery`*, `centos`*, `chainlink`*, `chakraui`*, `chaosblade`*, `characteranimator`, `chartjs`*, `chatgpt`*, `chi`*, `chrome`*, `chromedevtools`, `chromium`*, `circleci`*, `claude`*, `clerk`, `clickhouse`*, `clickup`*, `clion`*, `clojure`*, `cloudflare`*, `cloudformation`, `cloudfront`*, `cloudwatch`, `cmake`*, `cockroachdb`*, `codeberg`*, `codeblocks`*, `codeigniter`*, `codepen`*, `coffeescript`*, `commercetools`*, `composer`*, `confluence`*, `confluent`*, `consul`*, `contentful`*, `cpp`, `creativecloud`, `crewai`*, `crystal`*, `cs`, `css`, `cuda`*, `cursor`*, `cypress`*, `d`, `d3`*, `daft`*, `dailydev`*, `daisyui`*, `dapper`*, `dart`*, `dask`*, `databricks`*, `datadog`, `datagrip`*, `dataspell`*, `davinci`, `dbeaver`*, `dbtlabs`*, `debian`, `deepseek`*, `defold`*, `delta`*, `deltars`*, `deno`*, `desmos`, `devto`*, `digitalocean`*, `dimension`, `directus`, `discord`, `discordbots`, `discordjs`*, `django`, `djangorestframework`*, `dn42`*, `docker`, `docksal`*, `docsify`*, `doctrine`*, `doris`*, `dotnet`, `dreamweaver`, `dremio`, `drizzle`*, `drupal`*, `dubbo`*, `duckdb`, `duckduckgo`, `dusk`, `dynamodb`*, `ec2`, `echo`, `eclipse`*, `ecr`, `ecs`, `edge`*, `ejs`*, `eks`, `elasticbeanstalk`, `elasticsearch`*, `elb`, `electron`, `element`*, `elementor`*, `elementplus`*, `elixir`*, `elm`*, `elysia`*, `emacs`, `ember`, `emotion`*, `emr`, `envoyer`, `erlang`*, `eslint`*, `etcd`*, `ethereum`*, `eventbridge`, `excel`*, `expo`*, `expressjs`*, `fabric`*, `fabricmc`*, `facebook`, `fargate`, `fastai`*, `fastapi`, `fastlane`*, `fediverse`*, `fedora`*, `ffmpeg`*, `fiber`*, `figma`*, `filament`, `filmora`*, `firebase`*, `firefox`*, `fiverr`, `fivetran`*, `flameshot`, `flask`, `fleet`*, `flink`, `flutter`*, `flutterflow`*, `flyio`, `fonts`, `forge`, `forgejo`*, `forgemc`*, `forth`, `fortran`, `foundry`*, `framer`*, `frankenphp`*, `freecad`*, `freecodecamp`*, `freelancer`*, `fresco`, `fresh`*, `fuse`, `gamemakerstudio`, `ganache`*, `gatsby`, `gcp`*, `gdevelop`*, `gemini`*, `gentoo`*, `gherkin`*, `ghostty`*, `gimp`*, `gin`*, `git`*, `gitbash`*, `gitea`*, `github`*, `githubactions`*, `githubcopilot`*, `githubdesktop`*, `githubpages`*, `gitkraken`*, `gitlab`*, `gleam`*, `glue`, `gmail`*, `gmx`*, `gnome`*, `godot`*, `goland`*, `golang`, `googleanalytics`*, `googleappsscript`*, `googlecolab`*, `googleplay`*, `googleplayconsole`*, `gorm`*, `gradio`*, `gradle`*, `grafana`*, `grails`, `granica`, `graphite`*, `graphql`*, `grok`*, `gromacs`*, `groq`*, `grpc`*, `grunt`*, `gsap`*, `gtk`*, `gulp`, `hackerrank`*, `hackthebox`*, `hadoop`*, `hardhat`*, `haskell`*, `haxe`*, `haxeflixel`*, `helia`*, `helix`*, `helm`*, `herd`, `heroku`, `hexo`*, `hibernate`*, `higress`*, `hive`, `holyc`, `hono`*, `horizon`, `html`, `htmx`*, `htop`*, `hudi`*, `huggingface`*, `hugo`*, `hydrogen`*, `hyprland`*, `i3`*, `iceberg`*, `iced`, `idea`*, `ignite`*, `illustrator`, `immuta`*, `impala`*, `incopy`, `indesign`, `inertia`, `informatica`*, `infura`, `inkscape`*, `insomnia`, `instagram`, `integrations`*, `ipfs`*, `itchio`*, `jaeger`*, `jamovi`, `java`*, `javascript`, `jax`*, `jekyll`*, `jenkins`*, `jest`, `jetpackcompose`*, `jetstream`, `jira`*, `joomla`*, `jqlang`*, `jquery`, `json`*, `julia`*, `junit`*, `jupyter`*, `jwt`*, `k3s`*, `kafka`, `kaggle`*, `kakoune`*, `kali`*, `karma`*, `kde`*, `kdenlive`*, `keycloak`, `keydb`*, `kibana`*, `kitty`*, `kong`*, `kotlin`*, `ktor`*, `kubernetes`, `kubevela`*, `lambda`, `lancedb`*, `lando`*, `langchain`*, `laravel`*, `laravelspark`*, `latex`*, `lazyvim`*, `leaflet`*, `leetcode`*, `less`*, `libreoffice`*, `librewolf`*, `libsql`, `lighthouse`, `lightning`*, `lightroom`, `lightroomclassic`, `linkedin`, `linux`*, `liquidsoap`*, `lit`*, `litestar`*, `litmus`*, `livewire`*, `llamaindex`*, `logto`*, `looker`*, `lottielab`, `lua`*, `luau`, `lucidchart`*, `lunacy`, `lxc`*, `lynxjs`*, `macos`*, `manim`*, `manjaro`, `mariadb`*, `markdown`*, `mastodon`*, `materialui`*, `matlab`*, `matplotlib`*, `maven`*, `max8`, `max9`, `mcp`*, `mdbook`*, `mediaencoder`, `medium`*, `mermaid`, `metabase`*, `meteorjs`*, `microsoftcopilot`*, `miktex`*, `millionjs`*, `milvus`*, `mindsdb`*, `mint`*, `miro`, `misskey`*, `mistral`*, `mjml`*, `ml5`*, `mlflow`*, `mobx`, `mocha`*, `modelviewer`*, `mojo`*, `mongodb`, `mongoose`, `mux`*, `mysql`*, `n8n`*, `nacos`*, `neo4j`*, `neoforge`*, `neon`*, `neovim`*, `nestjs`*, `netlify`*, `nextflow`*, `nextjs`*, `nginx`, `ngrok`, `ngrx`*, `nim`*, `nixos`*, `nodejs`*, `notepadpp`*, `notion`*, `nova`, `npm`*, `numpy`*, `nunjucks`, `nuxtjs`*, `nvidia`*, `obs`*, `obsidian`*, `ocaml`, `octane`, `octave`*, `odin`*, `ollama`*, `onedrive`*, `onehouse`*, `onenote`*, `opencv`*, `openmm`*, `opensergo`*, `openshift`, `opensource`*, `openstack`*, `opentelemetry`*, `openzeppelin`*, `opera`*, `oracle`*, `orchid`, `outlook`*, `overleaf`*, `p4`*, `p5js`, `pail`*, `pancakeswap`*, `pandas`*, `papertrail`, `payload`*, `pbi`*, `pennant`, `perl`, `phaser`*, `photoshop`, `photoshopclassic`, `photoshopexpress`, `php`*, `phpstan`*, `phpstorm`*, `picocss`*, `pinecone`*, `pinescript`*, `pinia`*, `pint`, `pkl`*, `plan9`*, `planetscale`*, `platformio`*, `playcanvas`, `playfab`*, `playwright`*, `plotly`*, `plsql`*, `pm2`*, `pnpm`*, `pocketbase`*, `podman`*, `polar`*, `polars`, `popos`, `portainer`*, `portfolio`, `postcss`*, `postgresql`*, `postman`, `powerautomate`*, `powerpoint`*, `powershell`*, `powertoys`, `preact`*, `prelude`, `premiere`, `premiererush`, `presto`*, `prettier`*, `primeng`*, `primereact`*, `primevue`*, `prisma`, `processing`*, `prometheus`, `prompts`, `proton`*, `proxmox`*, `pug`*, `pulsar`*, `pulse`*, `pulumi`*, `puppeteer`*, `puppygraph`*, `putty`*, `pwa`*, `pycharm`*, `pydantic`*, `pygame`*, `pypi`, `pyspark`*, `pytest`*, `python`*, `pytorch`*, `pyxel`*, `qdrant`*, `qemu`*, `qodana`*, `qt`*, `quarkus`*, `qubesos`*, `querydsl`*, `quiltmc`*, `r`*, `rabbitmq`*, `radix`*, `rails`, `railway`*, `rancher`*, `raspberrypi`*, `ratatui`*, `ray`*, `rclone`*, `rds`, `react`*, `reactbootstrap`*, `reactivex`*, `reactlynx`*, `reactnative`*, `reactos`*, `reactquery`*, `reactrouter`*, `recoil`, `reddit`, `redhat`*, `redis`*, `redshift`*, `redux`, `regex`*, `remix`*, `render`*, `renpy`*, `replit`*, `resend`*, `resharper`*, `restructuredtext`*, `reverb`, `revolt`*, `rider`*, `robloxstudio`, `rocket`, `rocketmq`*, `rollupjs`*, `ros`*, `rubocop`*, `ruby`, `rubymine`*, `rust`*, `rustrover`*, `s3`*, `safari`*, `sail`, `salesforce`*, `sanctum`, `sanity`*, `sas`*, `sass`, `scala`*, `scikitlearn`*, `scipy`*, `scout`, `scratch`, `seaborn`*, `seata`*, `selenium`, `sentinel`*, `sentry`, `sequelize`*, `ses`, `session`*, `shadcn`*, `sharepoint`*, `shopify`*, `signal`, `skeletonui`*, `sketchup`*, `skywalking`*, `slack`*, `snowflake`*, `snyk`*, `socialite`, `socketio`*, `solana`*, `solidity`, `solidjs`*, `sonarqube`*, `spark`*, `sparksql`*, `sphinx`*, `spring`*, `springbatch`*, `springdatajpa`*, `springsecurity`*, `sqlalchemy`*, `sqlite`, `sqlserver`*, `sqs`, `stackoverflow`*, `stan`*, `starburst`*, `starrocks`*, `steam`, `stock`, `storyblok`*, `storybook`*, `strapi`, `streamlit`*, `stripe`*, `styledcomponents`, `stylelint`*, `stylus`*, `sublime`*, `supabase`*, `surrealdb`*, `sushiswap`*, `svelte`, `svg`*, `svn`, `swagger`*, `swift`, `symfony`*, `systemd`*, `t3`*, `tableau`*, `taiga`*, `tailscale`*, `tailsos`, `tailwindcss`*, `tallyprime`, `tanstack`*, `tauri`*, `teams`*, `tecton`*, `telegram`, `telescope`, `tensorflow`*, `terminal`*, `terraform`*, `testinglibrary`*, `texmaker`*, `threejs`*, `thunderbird`*, `thunkable`, `tidb`*, `tmux`*, `tokiors`*, `tomcat`*, `toml`*, `tor`*, `touchdesigner`*, `trino`*, `trpc`, `truffle`*, `tryhackme`*, `turborepo`*, `turso`*, `twig`*, `twitch`, `typeorm`*, `typescript`, `typst`*, `ubuntu`, `uml`*, `uniswap`*, `unity`*, `unitycatalog`*, `unocss`*, `unrealengine`, `unstructured`, `upwork`*, `v`*, `vagrant`*, `vala`, `vapor`, `vegaspro`, `vercel`*, `vim`*, `virtualbox`*, `visio`*, `visualbasic`*, `visualstudio`*, `vite`*, `vitepress`*, `vitest`*, `vmwareworkstation`*, `vscode`*, `vscodeinsiders`*, `vscodium`*, `vuejs`*, `vuetify`*, `vyper`*, `wails`*, `wandb`*, `warp`*, `webassembly`, `webflow`, `webpack`*, `websocket`*, `webstorm`*, `webstudio`*, `wezterm`*, `windicss`*, `windmill`*, `windows`*, `winedt`*, `wireshark`*, `word`*, `wordpress`, `workers`*, `wsl`*, `wxt`*, `x`*, `xcode`*, `xd`, `xtable`*, `yaml`*, `yammer`*, `yarn`*, `yew`*, `yii`*, `youtube`, `yui`*, `zabbix`, `zed`*, `zellij`*, `zen`*, `zig`*, `zudoku`*, `zustand`*
+`7zip`*, `8th`*, `activitypub`*, `actix`, `adiantiframework`*, `adobe`*, `adobeacrobat`, `adobeaftereffects`, `adobeaudition`, `adobecoldfusion`, `adobedreamweaver`, `adobeexpress`*, `adobeillustrator`, `adobeindesign`, `adobelightroom`, `adobephotoshop`, `adobepremierepro`, `adobexd`, `adonisjs`, `affinity`, `agda`*, `airflow`*, `aiscript`*, `aisdk`, `alacritty`*, `alchemy`, `algolia`, `alibabacloud`, `alpinejs`*, `alpinelinux`*, `amazons3`, `amazonwebservices`*, `amberlang`*, `amplify`, `anaconda`*, `android`*, `androidstudio`*, `angularjs`*, `animejs`*, `ansible`*, `antdesign`*, `anyrun`*, `anyscale`, `anytype`*, `apache`*, `apachebeam`*, `apachehadoop`*, `apachehive`*, `apachehop`, `apachejmeter`*, `apachemaven`*, `apachespark`*, `apachesubversion`*, `apidog`*, `apifox`*, `apipost`, `apktool`*, `apollo`, `appian`, `appium`*, `apple`*, `appwrite`, `arcbrowser`*, `archlinux`, `archunit`*, `arduino`, `argocd`*, `arturo`, `asciidoctordocs`, `aseprite`*, `aspaper`*, `assembly`*, `astraluv`*, `astro`*, `atom`, `auth0`*, `authjs`*, `authy`, `autocad`*, `autodeskfusion`*, `autohotkey`, `avaloniaui`, `axios`, `azul`*, `azure`*, `azuresynapse`*, `babel`*, `babylonjs`*, `backblaze`, `backbonejs`*, `balenaetcher`*, `ballerina`*, `bambustudio`, `baseui`*, `bash`, `batch`*, `bazarr`*, `beagleboard`*, `beeflang`*, `beekeeperstudio`*, `bento`*, `betterauth`, `bevy`, `bing`*, `binijs`*, `biome`*, `bitbucket`*, `blazor`*, `blender`*, `bloc`*, `bluesky`, `bolt`, `bookstack`*, `bootstrap`, `boundary`*, `box2d`*, `brave`*, `browserstack`*, `bruno`*, `buddiesofbudgie`*, `bugsnag`, `builder`*, `bullmq`*, `bulma`*, `bun`*, `bunnynet`*, `burncloud`*, `burpsuite`, `bytedance`*, `c`, `cachyos`*, `caddyserver`*, `cairo`*, `cakebuild`*, `cakephp`*, `camtasia`, `camunda`, `canva`, `capacitorjs`*, `capcut`, `cassandra`*, `catboost`, `catch2`*, `celery`*, `centos`*, `chakraui`*, `chartjs`*, `chatgpt`*, `chocolatey`*, `chroma`*, `chromium`*, `cinema4d`*, `circleci`, `cisco`, `civitai`*, `claudeai`*, `claudecode`*, `clerk`*, `clickhouse`*, `clickup`*, `cline`*, `clion`*, `clipstudiopaint`, `clojure`*, `cloudflare`*, `cloudflareworkers`*, `cloudinary`, `cmake`*, `cmder`*, `codeberg`, `codeblocks`*, `codechef`, `codecov`, `codeforces`*, `codegeex`*, `codeigniter`*, `codepen`*, `codeql`, `coderabbit`, `codewars`*, `codex`*, `coffeescript`*, `cohere`*, `comfyui`*, `commitlint`*, `composehotreload`*, `composemultiplatform`*, `composer`*, `conar`, `confluence`*, `consul`*, `convex`*, `cookiecutter`*, `coolify`*, `coze`*, `cpanel`*, `cpp`, `crewai`*, `crush`*, `crusoe`*, `crystal`, `csharp`, `css`, `css3`, `csv`*, `cucumber`*, `cudacplusplus`*, `curl`, `curseforge`*, `cursor`, `cypress`*, `d3js`*, `dagshub`*, `dailydev`*, `daisyui`*, `dart`*, `databricks`*, `datadog`, `datagrip`*, `datalore`*, `dataversioncontrol`*, `datefns`, `davinciresolve`*, `dbeaver`*, `dbt`*, `debian`, `deepin`*, `deepseek`, `deno`*, `dependabot`*, `designali`*, `devto`, `dhizuku`*, `digitalocean`, `directus`, `discord`, `discordbots`*, `discordjs`*, `disqus`*, `django`, `djangorestframework`*, `dlang`*, `dlthub`*, `dndkit`, `dnspy`*, `docker`, `dockge`*, `docus`*, `docusaurus`*, `dokploy`*, `dotnet`, `drawio`*, `dremio`*, `drizzle`*, `dropbox`, `drupal`, `duckdb`*, `dyad`*, `easybuild`*, `echo`*, `eclipseide`*, `edge`*, `edgeimpulse`*, `effect`*, `ejs`*, `elasticsearch`*, `electron`, `element`, `elementaryos`, `elementor`*, `elementplus`*, `elevenlabs`*, `elixir`*, `elysiajs`*, `emberjs`, `emby`*, `endeavouros`*, `erlang`, `esbuild`*, `eslint`*, `esp32`*, `etcd`*, `eventbridge`, `excalidraw`*, `expo`, `exposed`*, `expressjs`*, `expressvpn`, `fabricjs`*, `fabricmc`*, `facebook`, `fastapi`*, `fastify`*, `fdroid`*, `featuresliceddesign`*, `fedora`*, `fiber`*, `figma`*, `filezilla`, `filmora`, `firebase`*, `firebaseailogic`*, `firebaseauthentication`*, `firebasecloudfirestore`*, `firebasestudio`*, `firefox`*, `fivetran`*, `flameengine`*, `flask`, `flatassembler`*, `fleet`*, `flightcontrol`, `flourish`*, `flowbite`*, `flutter`*, `flutterflow`, `flyio`, `forem`, `forgejo`*, `forgemc`*, `fortran`, `framer`, `freebsd`*, `freecad`*, `freecodecamp`, `freelancer`*, `fresh`*, `fresheditor`*, `fsharp`*, `fusejs`*, `ganache`*, `gatsby`*, `gdevelop`, `geany`*, `geminicli`*, `genkit`*, `gentoo`*, `getx`*, `ghdl`*, `ghidra`, `ghostty`*, `gimp`*, `gin`*, `git`, `gitbash`*, `gitbook`*, `gitea`*, `github`*, `githubactions`*, `githubcopilot`*, `githubpages`*, `gitkraken`, `gitlab`*, `gitlocalize`*, `gitmind`*, `gitpod`*, `gleam`*, `gmail`*, `gnu`, `godot`*, `goland`*, `golang`, `googleadk`*, `googleadsense`*, `googleantigravity`*, `googlebigquery`*, `googlechrome`*, `googlecloud`*, `googlecloudcomposer`*, `googlecloudstorage`*, `googlecolaboratory`*, `googlecomputeengine`*, `googledataflow`*, `googledataproc`*, `googledocs`*, `googledrive`*, `googleforms`*, `googlegemini`*, `googleidx`*, `googlesheets`*, `googleslides`*, `googleworkspace`*, `gorm`*, `gradle`, `grafana`*, `graphite`*, `graphql`, `greeter`*, `gridsome`*, `grok`, `groovy`*, `groq`, `grpc`, `gruntjs`*, `gsap`*, `gtkwave`*, `hackerrank`*, `hackthebox`*, `hacs`, `handycontrols`, `haproxy`*, `hashicorp`*, `hashnode`*, `haskell`*, `haxe`*, `headlessui`*, `helia`*, `helm`, `herdr`, `heroku`, `heroui`*, `hexo`*, `heyapi`*, `hibernate`*, `homeassistant`, `homebrew`*, `hono`*, `hoppscotch`, `hostgator`*, `html`, `htmx`*, `httpie`*, `hub`*, `hubspot`, `huggingface`*, `hugo`*, `hyper`*, `hyprland`*, `i18next`*, `iceberg`*, `ida`, `ifttt`*, `inertiajs`, `influxdb`, `inkscape`*, `insomnia`, `instagram`, `intellijidea`*, `ionic`, `ios`*, `ipados`*, `istio`, `jaeger`*, `jakartaee`, `jamstack`*, `jasmine`*, `jaspr`*, `java`*, `javascript`, `javascriptregistry`*, `jdbc`*, `jekyll`*, `jellyfin`*, `jellyseerr`*, `jenkins`*, `jest`, `jetpack`*, `jetpackcompose`*, `jira`*, `jitsi`*, `joomla`*, `jotai`*, `jquery`, `json`*, `jsonschema`, `jujutsu`, `julia`*, `junit4`*, `junit5`*, `jupyter`*, `jwt`*, `k3s`*, `k6`*, `kafka`, `kaggle`, `kalilinux`*, `katalon`*, `keet`*, `kepware`*, `keras`, `kestra`, `keycloak`*, `kiali`*, `kicad`*, `kiro`, `kitty`*, `kofi`*, `koin`*, `konva`*, `kotlin`*, `kotlinmultiplatform`*, `kotlinnotebook`*, `koyeb`, `krita`*, `ktor`*, `kubernetes`, `kubuntu`*, `lando`*, `langchain`, `laravel`, `latex`, `launchdarkly`*, `lavalink`, `leaflet`*, `leetcode`*, `lemonsqueezy`, `lenis`, `less`*, `letterboxd`*, `librepcb`*, `lidarr`*, `linkedin`, `linux`*, `linuxmint`, `liquidsoap`*, `litert`*, `litestar`*, `litmus`, `livewire`*, `llamaindex`*, `llmrouter`*, `llvm`*, `lmstudio`, `logto`*, `lokalise`, `loki`*, `lookerstudio`*, `lottiefiles`, `lovable`*, `lua`*, `lubuntu`*, `lucia`, `lucide`*, `lumo`*, `lynxjs`*, `macos`*, `magicui`*, `magisk`*, `makecode`, `mambaui`, `manifoldjs`*, `manim`*, `manjaro`, `mapbox`, `mariadb`, `markdown`*, `mastodon`*, `materialdesign`*, `materialformkdocs`*, `materialui`, `matlab`*, `matplotlib`*, `matrix`, `medium`, `medusa`*, `mermaid`, `meta`*, `metabase`*, `metasploit`*, `mgx`*, `micropython`*, `microsoft365copilot`*, `microsoftaccess`*, `microsoftclipchamp`*, `microsoftcopilot`*, `microsoftentra`*, `microsoftexcel`*, `microsoftfabric`*, `microsoftforms`*, `microsoftfoundry`*, `microsoftintune`*, `microsoftoffice`*, `microsoftonedrive`*, `microsoftonenote`*, `microsoftoutlook`*, `microsoftpowerautomate`*, `microsoftpowerpoint`*, `microsoftproject`*, `microsoftsharepoint`*, `microsoftteams`*, `microsoftvisio`*, `microsoftword`*, `mikroc`, `milligram`*, `mimir`*, `minimax`, `minio`*, `mkdocs`*, `mlflow`*, `modelcontextprotocol`*, `mohistmc`*, `mongodb`, `motherduck`*, `motion`, `mqtt`, `msdos`*, `msys2`, `myshellai`*, `mysql`*, `n8n`, `navicat`*, `neo4j`*, `neocities`*, `neoforge`*, `neon`*, `neovim`*, `nestjs`, `netbeans`*, `netbird`*, `netflixdgs`*, `netlify`*, `newrelic`*, `nextdns`*, `nextjs`*, `nginx`, `ngrok`, `ngrx`*, `nim`*, `niri`*, `nitro`*, `nixos`*, `nmap`*, `noctalia`*, `nodejs`*, `nodemon`, `nodered`, `nomad`*, `notepadplusplus`*, `notion`*, `npm`, `nuget`, `numpy`*, `nunjucks`, `nuxthub`*, `nuxtjs`*, `oauth`*, `objectivec`, `obs`*, `obsidian`*, `obtainium`*, `ocaml`, `ollama`*, `omarchy`*, `ombi`*, `onyx`*, `openapi`*, `openclaw`*, `opencode`*, `opencv`*, `opengl`*, `openlayers`*, `openondemand`*, `openscad`*, `opensergo`, `openstreetmap`*, `opensuse`*, `opentelemetry`*, `openvpn`*, `openweather`*, `openwebui`, `opera`*, `oracle`*, `oraclecloudinfrastructure`*, `orcaslicer`, `orpc`*, `oumi`*, `overleaf`*, `overpassapi`, `overseerr`*, `oxc`*, `p4`*, `packer`*, `pandacss`, `pandas`*, `papermc`*, `parcel`*, `parrotos`*, `passportjs`*, `patreon`*, `payload`*, `peazip`*, `peerlist`*, `pennylane`*, `penpot`*, `pentahopdi`, `perplexity`, `phoenix`, `php`, `phpstorm`*, `pinia`*, `pinterest`, `pkgroll`*, `platformio`*, `plausible`, `playwright`*, `plex`*, `plotly`*, `pnpm`*, `pocketbase`*, `podman`*, `polars`*, `popos`*, `portugolstudio`*, `postcss`*, `postgresql`*, `posthog`*, `postman`, `powerbi`*, `powershell`*, `preact`*, `prettier`*, `primevue`*, `prisma`, `prismic`*, `procure`*, `prolog`*, `prometheus`, `protoncalendar`*, `protondrive`*, `protonmail`*, `protonpass`*, `protonvpn`*, `protonwallet`*, `prowlarr`*, `proxmox`*, `psycopg`*, `pug`*, `pull`*, `pulumi`*, `puppeteer`*, `puppylinux`*, `purpur`*, `putty`*, `pwa`*, `pycharm`*, `pydantic`, `pygame`*, `pymc`*, `pypi`*, `pyramid`*, `pytest`*, `python`*, `pytorch`*, `pytorch3d`*, `pywebview`*, `qdrant`*, `qoder`*, `qtwidgets`*, `quarkus`*, `quasar`*, `qubesos`*, `quiltmc`*, `qwik`*, `qwiklabs`, `r`*, `rabbitmq`*, `radarr`*, `radixui`*, `railway`*, `raspberrypi`*, `raygui`, `raylib`, `reactdatepicker`, `reacthookform`, `reactjs`*, `reactlynx`*, `reactnative`*, `reactquery`*, `reactrouter`*, `readarr`*, `readthedocs`*, `reddit`*, `redhat`*, `redis`*, `redoc`, `redux`, `refine`*, `regex`*, `reglejs`*, `rekaui`*, `render`*, `renovate`, `replit`, `resend`*, `rest`, `revolt`*, `rider`*, `riverpod`*, `robotoperatingsystem`*, `rocketmq`*, `rocksdb`*, `rolldown`, `rollupjs`*, `roocode`*, `ruby`*, `rubymine`*, `rubyonrails`, `rust`*, `rxjs`*, `sanity`, `sap`, `sass`, `scala`, `scikitlearn`*, `scipy`*, `scratch`*, `seaborn`*, `semanticui`, `sentry`, `sequelize`*, `serverless`*, `servicenow`*, `session`*, `setapp`, `seyfert`*, `shadcnui`*, `shiki`*, `shizuku`*, `shopify`*, `signal`, `signoz`, `simpledirectmedialayer`, `singlespa`*, `singularity`, `skeletonui`*, `sketch`*, `slack`*, `slackwarelinux`*, `slidev`*, `slint`*, `slurm`*, `snipcart`*, `snowflake`, `snyk`*, `soap`, `socketio`*, `solidity`, `solidjs`*, `solidstart`*, `solr`*, `solus`*, `sonarqube`, `sonarr`*, `soundbridge`*, `sphinx`, `splunk`, `spring`*, `springai`*, `springbatch`*, `springboot`*, `springcloud`*, `springgraphql`*, `springsecurity`*, `springshell`*, `spss`, `spyder`*, `sql`*, `sqlalchemy`*, `sqlite`*, `sqlserver`*, `sst`*, `stackblitz`, `stackoverflow`, `stanjs`*, `starlight`*, `stata`, `steam`, `stimulus`*, `storyblok`, `storybook`, `strapi`, `streamlit`*, `stride`*, `stripe`, `styledcomponents`, `sublime`*, `suitecrm`*, `supabase`*, `surrealdb`*, `svelte`, `svg`*, `swagger`, `swc`*, `swift`, `swiftui`, `swiper`*, `swr`*, `symfony`*, `systemd`*, `t0ggles`*, `tabby`*, `tableau`*, `taiga`*, `tailscale`, `tailwindcss`*, `tailwindmerge`*, `tanstack`*, `targon`, `tauri`*, `telegram`, `tempo`*, `tensorflow`*, `termux`, `terraform`*, `testcontainers`*, `thesvg`*, `threads`, `threejs`*, `thunderbird`*, `thunderclient`*, `tidb`*, `tiktok`, `tinacms`*, `tinkercad`*, `tinyhttp`*, `tmux`*, `toml`*, `trae`*, `traefik`*, `treesitter`*, `trello`, `triage`*, `trivy`*, `trpc`, `truenascore`*, `truenasenterprise`*, `truenasscale`*, `tsdown`*, `turborepo`*, `turso`, `twilio`, `twine`*, `twitter`, `typeorm`*, `typescript`, `typescripteslint`*, `typst`*, `ubuntu`, `udemy`*, `umami`*, `umbraco`*, `umbriel`*, `uml`*, `unity`, `unocss`*, `unrealengine`*, `upstageai`*, `upstash`*, `uvicorn`*, `v0`, `vagrant`*, `vala`, `valibot`*, `valkey`*, `vanillaos`*, `vapor`*, `vault`*, `vaxee`*, `vegaspro`, `velocity`, `veracrypt`*, `vercel`*, `vhdl`, `videojs`*, `vike`*, `vim`*, `virtualbox`*, `virustotal`, `visualstudio`*, `visualstudiocode`*, `visualstudiocodeinsiders`*, `vite`*, `vitepress`*, `vitepwa`*, `vitest`*, `vivaldi`, `vk`, `vlc`, `vlitejs`*, `vmix`*, `vmware`*, `voidlinux`*, `vscodium`*, `vuefire`*, `vueform`*, `vuejs`*, `vuepress`*, `vuetify`*, `vueuse`*, `vulkan`*, `wakatime`*, `wampserver`*, `warp`*, `waypoint`*, `weaviate`*, `webassembly`, `weblate`*, `websocket`*, `webstorm`*, `webstudio`*, `whatsapp`, `whisparr`*, `windicss`*, `windows`, `windowsappsdk`*, `windsurf`*, `winui`*, `wireshark`*, `wolframmathematica`*, `woocommerce`, `wordpress`, `wxt`*, `x`, `xamarin`*, `xaml`*, `xampp`, `xcode`*, `xftp`*, `xml`*, `xposed`*, `xshell`*, `xubuntu`*, `yaak`, `yaml`*, `yandexen`, `yandexru`, `yarn`*, `yii`*, `yolo`*, `youtube`*, `zabbix`, `zeabur`*, `zed`, `zen`*, `zensical`*, `zerops`*, `zig`*, `zod`*, `zorinos`, `zshell`*, `zustand`*
 
 \* follows the viewer's light/dark setting.
 
@@ -219,7 +320,7 @@ bun dev                # http://localhost:3000/v1/marquee?i=js,ts
 
 ## Credits
 
-Icons are from [skill-icons](https://github.com/LelouchFR/skill-icons) by Baptiste Zahnow, MIT licensed. See [ATTRIBUTION.md](ATTRIBUTION.md).
+Icons are from [skills-icons](https://github.com/syvixor/skills-icons) by Syvixor, MIT licensed. See [ATTRIBUTION.md](ATTRIBUTION.md).
 
 ## License
 

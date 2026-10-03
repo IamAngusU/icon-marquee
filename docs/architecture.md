@@ -30,16 +30,14 @@ public/
 ├── logo.svg          # pixel heart logo and favicon
 └── icons/
     ├── LICENSE       # upstream MIT license
-    └── <name>/
-        ├── auto.svg  # follows prefers-color-scheme
-        ├── dark.svg
-        ├── light.svg
-        └── default.svg  # only for icons without theme variants
+    └── <name>.svg    # one file per icon; themed icons embed a prefers-color-scheme style
 ```
 
 ## Icons
 
-Icons come from [LelouchFR/skill-icons](https://github.com/LelouchFR/skill-icons) (MIT, commit `5401d69`). Upstream `assets/<name>-<variant>.svg` maps to `public/icons/<name>/<variant>.svg`, and an upstream file with no variant suffix becomes `default.svg`. An icon has either the three themed variants or a single `default.svg`.
+Icons come from [syvixor/skills-icons](https://github.com/syvixor/skills-icons) (MIT, commit `1d5b572`), copied unmodified from upstream `icons/<name>.svg` to `public/icons/<name>.svg`. Every icon is 256×256. Themed icons switch light/dark through an embedded `<style>` scoped to the icon's own `#id` with a `prefers-color-scheme` media query.
+
+icon-marquee used [LelouchFR/skill-icons](https://github.com/LelouchFR/skill-icons) before. When it switched, the 56 skill-icons names that exist in skills-icons under another name (e.g. `react` → `reactjs`) became aliases in `config.icons.aliases`, so URLs using them keep working. The 336 skill-icons icons with no skills-icons equivalent were dropped.
 
 `public/icons` is excluded from Biome.
 
@@ -56,11 +54,11 @@ Icons come from [LelouchFR/skill-icons](https://github.com/LelouchFR/skill-icons
 
 Both icon endpoints share `src/utils/load.ts`, so they take the same `i` param and return the same errors.
 
-`/v1/icons` accepts icon folder names or short names from `config.icons.aliases`, up to `config.icons.maxPerRequest` (100) per request. It serves `auto.svg` when an icon has theme variants, otherwise `default.svg`. Rows are 48px tall, with icons 256 units wide and a 44-unit gap. Unknown names return 400 and list the bad names. Names resolve only through the startup index, so no request path reaches the filesystem directly.
+`/v1/icons` accepts icon names or short names from `config.icons.aliases`, up to `config.icons.maxPerRequest` (100) per request. Rows are 48px tall, with icons 256 units wide and a 44-unit gap. Unknown names return 400 and list the bad names. Names resolve only through the startup index, so no request path reaches the filesystem directly.
 
 `/v1/marquee` draws the row at least twice and slides it left by one row width (icon count × 300 units) with a looping CSS animation, so the loop is seamless. Without a `width` param, the window is at most `config.marquee.defaultWidthPx` (400px) wide, or one row if the row is narrower. With `width` (1 to `config.marquee.maxWidthPx`, 3840), the window is exactly that wide and the row is drawn `ceil(window / row width) + 1` times so the loop stays seamless. Repeated rows compress well: a 3840px hero is about 280 KB raw but about 18 KB with Brotli. Speed is a constant `config.marquee.speedPxPerS` (30px/s), so the duration grows with the icon count. A `prefers-reduced-motion: reduce` rule stops the animation. CSS animations run inside `<img>`, so it works in READMEs.
 
-Each icon's ids, and every reference to them, are prefixed with `i<index>-` when combined. Upstream icons reuse ids such as `Path`, `Vector` and `clip0_…`, which would otherwise clash. Some upstream icons reference ids they never define; those references stay unresolved, as they are when the icon is viewed alone.
+Each icon's ids, and every reference to them, are prefixed with `i<index>-` when combined. Upstream icons reuse ids such as `clip0_…` and gradient ids, which would otherwise clash. Each themed icon's `<style>` selects its own `#id`, so its selectors are rewritten with the same prefix. The exception is `8th`, whose selector is CSS-escaped (`#\38 th`) and isn't rewritten, so that one icon keeps its default colours when combined. Some upstream icons reference ids they never define; those references stay unresolved, as they are when the icon is viewed alone.
 
 ## Landing page
 
