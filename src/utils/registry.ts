@@ -19,3 +19,5 @@ const iconPaths: ReadonlyMap<string, string> = new Map(
 export function resolveIconPath(name: string): string | undefined {
   return iconPaths.get(config.icons.aliases[name] ?? name);
 }
+
+export const iconCount = iconPaths.size;
