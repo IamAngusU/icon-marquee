@@ -101,4 +101,14 @@ export const config = {
     maxWidthPx: 3840,
     speedPxPerS: 30,
   },
+  landing: {
+    repoUrl: "https://github.com/gian-gg/icon-marquee",
+    authorUrl: "https://giann.dev",
+    heroIcons:
+      "js,ts,react,nextjs,svelte,vue,tailwind,bun,nodejs,docker,postgres,redis,go,rust,python",
+    playgroundIcons: "js,ts,react,docker,go,rust",
+    snippetAlt: "icon-marquee",
+    heroWidthPx: 3840,
+    cacheMaxAgeS: 3600,
+  },
 } as const;

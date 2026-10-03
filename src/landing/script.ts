@@ -1,0 +1,87 @@
+import { config } from "../config";
+
+const ALT = JSON.stringify(config.landing.snippetAlt);
+
+export const script = `
+(() => {
+  const alt = ${ALT};
+  const input = document.getElementById("icons");
+  const preview = document.getElementById("preview");
+  const status = document.getElementById("status");
+  const modeButtons = document.querySelectorAll("[data-mode]");
+  const fields = {
+    markdown: document.getElementById("snippet-markdown"),
+    html: document.getElementById("snippet-html"),
+    url: document.getElementById("snippet-url"),
+  };
+  let mode = "marquee";
+  let timer;
+  let requestId = 0;
+
+  const names = () =>
+    input.value.split(",").map((n) => n.trim().toLowerCase()).filter(Boolean);
+
+  const pathFor = (list) =>
+    "/v1/" + mode + "?i=" + list.map(encodeURIComponent).join(",");
+
+  async function update() {
+    const list = names();
+    if (list.length === 0) {
+      status.textContent = "Add at least one icon name.";
+      return;
+    }
+    const path = pathFor(list);
+    const id = ++requestId;
+    try {
+      const res = await fetch(path);
+      if (id !== requestId) return;
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        status.textContent = body.error || "Something went wrong.";
+        return;
+      }
+    } catch {
+      if (id === requestId) status.textContent = "Network error.";
+      return;
+    }
+    const url = location.origin + path;
+    status.textContent = "";
+    preview.src = path;
+    fields.markdown.textContent = "![" + alt + "](" + url + ")";
+    fields.html.textContent = '<img src="' + url + '" alt="' + alt + '" />';
+    fields.url.textContent = url;
+  }
+
+  input.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(update, 300);
+  });
+
+  modeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      mode = button.dataset.mode;
+      modeButtons.forEach((b) => b.setAttribute("aria-pressed", String(b === button)));
+      update();
+    });
+  });
+
+  document.querySelectorAll("[data-copy]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const text = fields[button.dataset.copy].textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        button.dataset.copied = "";
+        button.textContent = "Copied";
+      } catch {
+        button.textContent = "Failed";
+      }
+      setTimeout(() => {
+        delete button.dataset.copied;
+        button.textContent = "Copy";
+      }, 1500);
+    });
+  });
+
+  update();
+})();
+`;
