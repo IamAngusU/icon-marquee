@@ -38,8 +38,17 @@ https://icon-marquee.giann.dev/v1/marquee?i=html,css,js,ts,react,vue,svelte,angu
 
 - The icons scroll left at a constant 30px/s, so a longer list makes a longer loop. 8 icons loop every 15 seconds.
 - The visible window is at most 400px wide. With fewer icons than fill 400px, the window shrinks to exactly one row and still loops.
+- Pass `width` to set the window yourself, up to 3840px. The row repeats to fill it, so even a few icons can span a full-width banner.
 - The animation stops for viewers who turn on reduced motion (`prefers-reduced-motion: reduce`).
 - It's plain SVG with CSS animation: no JavaScript and no GIF. It stays sharp at any size and works inside `<img>`, including GitHub READMEs.
+
+A wide banner, with three icons repeated to fill 800px:
+
+![wide marquee](https://icon-marquee.giann.dev/v1/marquee?i=go,rust,zig&width=800)
+
+```
+https://icon-marquee.giann.dev/v1/marquee?i=go,rust,zig&width=800
+```
 
 A short list:
 
@@ -64,8 +73,9 @@ The same icons in a static row, in the order you list them.
 | Param | Required | Description |
 | --- | --- | --- |
 | `i` | yes | Comma-separated icon names or short names, e.g. `i=js,ts,react` |
+| `width` | no | `/v1/marquee` only. Window width in px, a whole number from 1 to 3840, e.g. `width=1200` |
 
-`i` is currently the only parameter on both endpoints. Behaviour of the `i` list:
+Behaviour of the `i` list:
 
 - **Order** is kept: icons render left to right as listed.
 - **Case and spaces** are ignored: `i=JS, TS` works.

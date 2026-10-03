@@ -97,7 +97,8 @@ export const config = {
     cacheMaxAgeS: 86400,
   },
   marquee: {
-    maxWidthPx: 400,
+    defaultWidthPx: 400,
+    maxWidthPx: 3840,
     speedPxPerS: 30,
   },
 } as const;

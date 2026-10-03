@@ -24,12 +24,21 @@ export function renderIconRow(svgs: readonly string[]): string {
   return svgDocument(svgs.length * stride - gapUnits, rowMarkup(svgs));
 }
 
-export function renderIconMarquee(svgs: readonly string[]): string {
+export function renderIconMarquee(
+  svgs: readonly string[],
+  widthPx?: number,
+): string {
   const period = svgs.length * stride;
-  const width = Math.min(toUnits(config.marquee.maxWidthPx), period - gapUnits);
+  const width =
+    widthPx === undefined
+      ? Math.min(toUnits(config.marquee.defaultWidthPx), period - gapUnits)
+      : toUnits(widthPx);
+  const copies = Math.ceil(width / period) + 1;
   const duration = (toPx(period) / config.marquee.speedPxPerS).toFixed(2);
   const style = `<style>@keyframes scroll{to{transform:translateX(-${period}px)}}.track{animation:scroll ${duration}s linear infinite}@media (prefers-reduced-motion:reduce){.track{animation:none}}</style>`;
-  const track = `<g class="track">${rowMarkup(svgs)}${rowMarkup(svgs, period)}</g>`;
+  const rows = Array.from({ length: copies }, (_, copy) =>
+    rowMarkup(svgs, copy * period),
+  ).join("");
 
-  return svgDocument(width, style + track);
+  return svgDocument(width, `${style}<g class="track">${rows}</g>`);
 }

@@ -52,4 +52,20 @@ describe("GET /marquee", () => {
 
     expect(res.status).toBe(400);
   });
+
+  test("fills an explicit width by repeating the row", async () => {
+    const res = await marqueeRoutes.request("/?i=js,html&width=600");
+    const body = await res.text();
+
+    expect(body.startsWith('<svg width="600" height="48"')).toBe(true);
+    expect(body.match(/<g transform=/g)).toHaveLength(14);
+  });
+
+  test("rejects a width that is not a whole number in range", async () => {
+    for (const width of ["0", "abc", "1.5", "3841"]) {
+      const res = await marqueeRoutes.request(`/?i=js&width=${width}`);
+
+      expect(res.status).toBe(400);
+    }
+  });
 });
