@@ -14,10 +14,11 @@
 src/
 ├── index.ts          # app entry: creates the app, mounts versioned routes
 ├── config.ts         # env-backed config
-├── icons/
-│   ├── aliases.ts    # short names (js, ts, wasm…) to icon folder names
+├── utils/
+│   ├── load.ts       # parses the `i` query, validates and reads icon SVGs
 │   ├── registry.ts   # indexes public/icons at startup, resolves names to files
-│   └── render.ts     # lays out icon SVGs in one row
+│   ├── render.ts     # static row and animated marquee
+│   └── scope-ids.ts  # prefixes each icon's ids so icons share one document
 └── routes/
     ├── index.ts      # combines route modules
     └── <name>/
@@ -45,8 +46,15 @@ Icons come from [LelouchFR/skill-icons](https://github.com/LelouchFR/skill-icons
 | --- | --- | --- |
 | GET | `/v1` | Health check |
 | GET | `/v1/icons?i=js,html,css` | One SVG with the requested icons in a row, in request order |
+| GET | `/v1/marquee?i=js,html,css` | Animated SVG scrolling the same row in a loop |
 
-`/v1/icons` accepts icon folder names or short names from `src/icons/aliases.ts`, up to 100 per request. It serves `auto.svg` when an icon has theme variants, otherwise `default.svg`. Rows are 48px tall, with icons 256 units wide and a 44-unit gap. Unknown names return 400 and list the bad names. Names resolve only through the startup index, so no request path reaches the filesystem directly.
+Both icon endpoints share `src/utils/load.ts`, so they take the same `i` param and return the same errors.
+
+`/v1/icons` accepts icon folder names or short names from `config.icons.aliases`, up to `config.icons.maxPerRequest` (100) per request. It serves `auto.svg` when an icon has theme variants, otherwise `default.svg`. Rows are 48px tall, with icons 256 units wide and a 44-unit gap. Unknown names return 400 and list the bad names. Names resolve only through the startup index, so no request path reaches the filesystem directly.
+
+`/v1/marquee` draws the row twice and slides it left by one row width (icon count × 300 units) with a looping CSS animation, so the loop is seamless. The window is at most `config.marquee.maxWidthPx` (400px) wide, or one row if the row is narrower. Speed is a constant `config.marquee.speedPxPerS` (30px/s), so the duration grows with the icon count. A `prefers-reduced-motion: reduce` rule stops the animation. CSS animations run inside `<img>`, so it works in READMEs.
+
+Each icon's ids, and every reference to them, are prefixed with `i<index>-` when combined. Upstream icons reuse ids such as `Path`, `Vector` and `clip0_…`, which would otherwise clash. Some upstream icons reference ids they never define; those references stay unresolved, as they are when the icon is viewed alone.
 
 ## Request flow
 
@@ -60,7 +68,7 @@ All endpoints live under `/v1`. A new API version is a separate route tree mount
 
 ## Config
 
-`src/config.ts` reads env vars once at startup through `requireEnv` and exports a single `config` object. Bun loads `.env` automatically. A missing required var stops the server from starting.
+`src/config.ts` reads env vars once at startup through `requireEnv` and exports a single `config` object. The same object holds the tuning values: `icons` (max per request, short-name aliases, icon size, row height, gap, cache lifetime) and `marquee` (max window width, speed). `icons.sizeUnits` must match the icon files' 256×256 viewBox. Bun loads `.env` automatically. A missing required var stops the server from starting.
 
 ## Tooling
 
