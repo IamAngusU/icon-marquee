@@ -18,7 +18,22 @@ src/
     ├── index.ts      # combines route modules
     └── <name>/
         └── index.ts  # one route module per folder
+
+public/
+└── icons/
+    ├── LICENSE       # upstream MIT license
+    └── <name>/
+        ├── auto.svg  # follows prefers-color-scheme
+        ├── dark.svg
+        ├── light.svg
+        └── default.svg  # only for icons without theme variants
 ```
+
+## Icons
+
+Icons come from [LelouchFR/skill-icons](https://github.com/LelouchFR/skill-icons) (MIT, commit `5401d69`). Upstream `assets/<name>-<variant>.svg` maps to `public/icons/<name>/<variant>.svg`, and an upstream file with no variant suffix becomes `default.svg`. An icon has either the three themed variants or a single `default.svg`.
+
+`public/icons` is excluded from Biome.
 
 ## Request flow
 
