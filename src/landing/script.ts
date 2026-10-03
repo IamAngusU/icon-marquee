@@ -38,12 +38,15 @@ export const script = `
       if (id !== requestId) return;
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        status.textContent = body.error || "Something went wrong.";
+        const missing = /^No known icons: (.*)$/.exec(body.error || "");
+        status.textContent = missing
+          ? "We don't have any of these icons: " + missing[1]
+          : body.error || "Something went wrong.";
         return;
       }
       const skipped = res.headers.get("${UNKNOWN_ICONS_HEADER}");
       status.textContent = skipped
-        ? "Skipped unknown icons: " + skipped.split(",").map(decodeURIComponent).join(", ")
+        ? "We don't have these icons yet, so they're left out: " + skipped.split(",").map(decodeURIComponent).join(", ")
         : "";
     } catch {
       if (id === requestId) status.textContent = "Network error.";
