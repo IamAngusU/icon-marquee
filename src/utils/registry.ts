@@ -1,6 +1,6 @@
 import { readdirSync } from "node:fs";
 import { join } from "node:path";
-import { ICON_ALIASES } from "./aliases";
+import { config } from "../config";
 
 const ICONS_DIR = join(import.meta.dir, "../../public/icons");
 
@@ -16,5 +16,5 @@ const iconPaths: ReadonlyMap<string, string> = new Map(
 );
 
 export function resolveIconPath(name: string): string | undefined {
-  return iconPaths.get(ICON_ALIASES[name] ?? name);
+  return iconPaths.get(config.icons.aliases[name] ?? name);
 }
