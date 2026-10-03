@@ -23,5 +23,6 @@
     "format": "biome format --write .",
     "check": "biome check --write .",
     "test": "bun test"
-  }
+  },
+  "license": "MIT"
 }
