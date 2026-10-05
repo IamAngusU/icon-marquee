@@ -4,7 +4,7 @@ Static logo walls all look the same. Give your stack a little motion.
 
 Pick from 1,041 icons, add your own logos, and export one animated SVG. No install. No account.
 
-[![Open generator](docs/assets/generator.svg)](https://icon-marquee.bloomy-yak-1739.chatgpt.site)
+[![Open generator](docs/assets/generator.svg)](https://icon-marquee.angus509938.chatgpt.site)
 
 ![Icon Marquee — Your stack. In good motion.](docs/assets/hero.svg)
 

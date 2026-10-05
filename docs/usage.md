@@ -78,7 +78,7 @@ Both SVG endpoints also accept `effect=none|glint|chrome`, `intensity=0..100`, `
 
 ## Run and deploy
 
-Use the [public generator](https://icon-marquee.bloomy-yak-1739.chatgpt.site) without installing anything, or run locally with Bun 1.4.2+:
+Use the [public generator](https://icon-marquee.angus509938.chatgpt.site) without installing anything, or run locally with Bun 1.4.2+:
 
 ```sh
 bun install --frozen-lockfile
