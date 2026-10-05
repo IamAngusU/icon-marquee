@@ -29,6 +29,9 @@ export function createLivePreview(
   let next: () => number = () => 0;
   let themeStyles: { element: SVGStyleElement; source: string }[] = [];
   let labels: string[] = [];
+  let finishSeed = 1;
+  let finishSerial = 0;
+  let finishIndependent = true;
   const tooltip = document.createElement("div");
   tooltip.className = "icon-tooltip";
   tooltip.id = "preview-icon-tooltip";
@@ -55,9 +58,26 @@ export function createLivePreview(
         );
         use.setAttribute("href", `#asset-${asset}`);
         use.setAttribute("transform", `translate(${index * stride}, 0)`);
+        phaseFinish(use, asset, finishSerial++);
         annotate(use, asset);
         return use;
       }),
+    );
+  }
+
+  function phaseFinish(use: SVGUseElement, asset: number, instance: number) {
+    if (!finishIndependent) {
+      use.style.removeProperty("--finish-delay");
+      return;
+    }
+    const hash =
+      (Math.imul(asset + 1, 3266489917) ^
+        Math.imul(instance + 1, 2246822519) ^
+        finishSeed) >>>
+      0;
+    use.style.setProperty(
+      "--finish-delay",
+      `-${((hash / 4294967296) * 97).toFixed(4)}s`,
     );
   }
 
@@ -78,6 +98,7 @@ export function createLivePreview(
     if (!use) return;
     const asset = (right ? queue[0] : queue[queue.length - 1]) ?? 0;
     use.setAttribute("href", `#asset-${asset}`);
+    phaseFinish(use, asset, finishSerial++);
     annotate(use, asset);
     if (right) track.prepend(use);
     else track.append(use);
@@ -213,6 +234,10 @@ export function createLivePreview(
     ) as unknown as SVGSVGElement;
     host.replaceChildren(root);
     labels = iconLabels;
+    finishSeed = options.seed ?? 1;
+    finishSerial = 0;
+    finishIndependent =
+      options.effectTiming !== "sync" || options.effectCoverage === "some";
     host.setAttribute("role", labels.length ? "group" : "img");
     themeStyles = Array.from(
       root.querySelectorAll<SVGStyleElement>("style"),

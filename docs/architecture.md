@@ -117,7 +117,7 @@ Repository privacy and endpoint access are separate. There is no authentication 
 
 The generator has a portable static build of the same composer. `scripts/build-static.ts` writes HTML with its own hashed script CSP, the local SVG catalog, favicon and licenses to `dist/`. Relative icon paths work on subpath hosting. The browser uses those assets instead of `/v1/assets`, and hides API URL export. Keep generated output out of Git and build before publishing. No user logo data is uploaded.
 
-Hosting is separate from source updates. The old public deployment is on ChatGPT Sites (`.openai/hosting.json`); the user rejected that provider. Do not publish further changes there. The proposed replacement is `https://angusu.de/icon-marquee/` on the user's VPS, but migration and deactivation of the old Site still require the pending approval. Until migration, the old public generator is not the latest source build.
+Hosting is separate from source updates. The portable static build is served from the owner's VPS at `https://angusu.de/icon-marquee/`. ChatGPT Sites is not part of the deployment path.
 
 ## Validation
 

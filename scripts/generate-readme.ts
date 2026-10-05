@@ -1,7 +1,52 @@
 import { loadIcons } from "../src/utils/load";
+import { iconNames } from "../src/utils/registry";
 import { renderIconMarquee } from "../src/utils/render";
 
-const assets = await loadIcons("ts,react,bun,go,rust,docker,figma,github");
+const featured = [
+  "js",
+  "ts",
+  "react",
+  "nextjs",
+  "vue",
+  "svelte",
+  "astro",
+  "tailwind",
+  "vite",
+  "bun",
+  "nodejs",
+  "deno",
+  "python",
+  "go",
+  "rust",
+  "zig",
+  "java",
+  "kotlin",
+  "swift",
+  "csharp",
+  "php",
+  "ruby",
+  "docker",
+  "kubernetes",
+  "terraform",
+  "cloudflare",
+  "aws",
+  "postgres",
+  "mongodb",
+  "redis",
+  "git",
+  "github",
+  "figma",
+];
+const sample = [...new Set(featured)];
+for (
+  let cursor = 37;
+  sample.length < 72;
+  cursor = (cursor + 137) % iconNames.length
+) {
+  const name = iconNames[cursor];
+  if (name && !sample.includes(name)) sample.push(name);
+}
+const assets = await loadIcons(sample.join(","));
 if ("error" in assets) throw new Error(assets.error);
 const mark = await Bun.file(
   new URL("../docs/assets/mark.svg", import.meta.url),
@@ -10,7 +55,17 @@ const svg = renderIconMarquee([mark, ...assets.svgs], {
   heightPx: 64,
   gapPx: 20,
   widthPx: 912,
-  speedPxPerS: 32,
+  speedPxPerS: 38,
+  order: "shuffle",
+  seed: 509938,
+  edgeFade: 24,
+  effect: "glint",
+  effectTiming: "random",
+  effectCoverage: "some",
+  effectDuration: 2.5,
+  effectInterval: 5,
+  effectVariation: 60,
+  intensity: 24,
 });
 const row = svg
   .replace("<svg ", '<svg x="44" y="222" ')

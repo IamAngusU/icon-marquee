@@ -85,7 +85,7 @@ export function createSvgRenderer(
         : options.effect === "holo"
           ? '<stop stop-color="#7ffff2" stop-opacity="0"/><stop offset=".2" stop-color="#71e7ff"/><stop offset=".38" stop-color="#ada0ff"/><stop offset=".5" stop-color="#fff"/><stop offset=".6" stop-color="#ff94d9"/><stop offset=".76" stop-color="#ffe5a3"/><stop offset=".9" stop-color="#8fffd9"/><stop offset="1" stop-color="#8fffd9" stop-opacity="0"/>'
           : '<stop stop-color="#a8bccb" stop-opacity="0"/><stop offset=".24" stop-color="#d5e3ee"/><stop offset=".4" stop-color="#fff"/><stop offset=".48" stop-color="#71849a"/><stop offset=".5" stop-color="#e8f5ff"/><stop offset=".54" stop-color="#fff"/><stop offset=".7" stop-color="#94acbf"/><stop offset="1" stop-color="#c2d8e8" stop-opacity="0"/>';
-    return `<linearGradient id="surface-sheen" x1="0" y1="0" x2="1" y2=".35">${stops}</linearGradient><clipPath id="surface-clip"><rect width="256" height="256" rx="40"/></clipPath><mask id="surface-border" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"><rect x="4" y="4" width="248" height="248" rx="36" fill="none" stroke="white" stroke-width="8"/></mask><style>.finish{animation-play-state:var(--effect-play,running)!important;pointer-events:none}@media(prefers-reduced-motion:reduce){.finish{animation:none!important;display:none}}</style>`;
+    return `<linearGradient id="surface-sheen" x1="0" y1=".2" x2="1" y2=".8">${stops}</linearGradient><clipPath id="surface-clip"><rect width="256" height="256" rx="40"/></clipPath><mask id="surface-border" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"><rect x="4" y="4" width="248" height="248" rx="36" fill="none" stroke="white" stroke-width="8"/></mask><style>.finish{animation-play-state:var(--effect-play,running)!important;pointer-events:none}@media(prefers-reduced-motion:reduce){.finish{animation:none!important;display:none}}</style>`;
   }
 
   function finish(options: IconRowOptions, index: number) {
@@ -124,8 +124,11 @@ export function createSvgRenderer(
       .map(({ sweep, wait }) => {
         const start = (cursor / total) * 100;
         const end = ((cursor + sweep) / total) * 100;
+        const cycleEnd = ((cursor + sweep + wait) / total) * 100;
         cursor += sweep + wait;
-        return `${start.toFixed(4)}%{transform:translateX(-384px);opacity:0}${(start + (end - start) * 0.1).toFixed(4)}%{opacity:1}${(end - (end - start) * 0.1).toFixed(4)}%{opacity:1}${end.toFixed(4)}%{transform:translateX(384px);opacity:0}`;
+        // Both ends of the band sit fully outside the icon. The reset therefore
+        // happens while invisible instead of exposing a rectangular loop seam.
+        return `${start.toFixed(4)}%{transform:translateX(0)}${end.toFixed(4)}%{transform:translateX(896px)}${Math.max(end, cycleEnd - 0.0001).toFixed(4)}%{transform:translateX(896px)}${cycleEnd.toFixed(4)}%{transform:translateX(0)}`;
       })
       .join("");
     const delay =
@@ -137,7 +140,29 @@ export function createSvgRenderer(
     const opacity = Math.min(1, Math.max(0, (options.intensity ?? 35) / 100));
     const strength =
       options.effect === "glint" ? Math.min(1, opacity * 1.65) : opacity;
-    return `<style>@keyframes finish-${index}{${frames}100%{transform:translateX(384px);opacity:0}}</style><g clip-path="url(#surface-clip)"${options.effectArea === "border" ? ' mask="url(#surface-border)"' : ""} pointer-events="none" opacity="${strength}"><rect class="finish ${options.effect}" x="-128" width="512" height="256" fill="url(#surface-sheen)" style="animation:finish-${index} ${total.toFixed(4)}s linear ${delay.toFixed(4)}s infinite"/></g>`;
+    return `<style>@keyframes finish-${index}{${frames}}</style><g clip-path="url(#surface-clip)"${options.effectArea === "border" ? ' mask="url(#surface-border)"' : ""} pointer-events="none" opacity="${strength}"><path class="finish ${options.effect}" d="M-512 0h448l-128 256h-448z" fill="url(#surface-sheen)" style="animation:finish-${index} ${total.toFixed(4)}s linear var(--finish-delay,${delay.toFixed(4)}s) infinite"/></g>`;
+  }
+
+  function finishUseStyle(
+    options: IconRowOptions,
+    asset: number,
+    instance: number,
+  ) {
+    if (
+      !options.effect ||
+      options.effect === "none" ||
+      (options.effectCoverage === "selected" &&
+        !options.effectIndices?.includes(asset)) ||
+      (options.effectTiming === "sync" && options.effectCoverage !== "some")
+    )
+      return "";
+    const seed = (options as MarqueeOptions).seed ?? settings.defaultSeed;
+    const hash =
+      (Math.imul(asset + 1, 3266489917) ^
+        Math.imul(instance + 1, 2246822519) ^
+        seed) >>>
+      0;
+    return ` style="--finish-delay:-${((hash / 4294967296) * 97).toFixed(4)}s"`;
   }
 
   function escapeLabel(value: string) {
@@ -176,11 +201,13 @@ export function createSvgRenderer(
     stride: number,
     offset = 0,
     labels: readonly string[] = [],
+    options: IconRowOptions = {},
+    instanceOffset = 0,
   ) {
     return sequence
       .map(
         (asset, i) =>
-          `<use href="#asset-${asset}" transform="translate(${offset + i * stride}, 0)"${labels[asset] ? `><title>${escapeLabel(labels[asset] ?? "")}</title></use>` : "/>"}`,
+          `<use href="#asset-${asset}" transform="translate(${offset + i * stride}, 0)"${finishUseStyle(options, asset, instanceOffset + i)}${labels[asset] ? `><title>${escapeLabel(labels[asset] ?? "")}</title></use>` : "/>"}`,
       )
       .join("");
   }
@@ -207,7 +234,8 @@ export function createSvgRenderer(
     return document(
       svgs.length * stride - gap,
       height,
-      definitions(svgs, options) + row(sequence, stride, 0, options.labels),
+      definitions(svgs, options) +
+        row(sequence, stride, 0, options.labels, options),
       options.theme,
     );
   }
@@ -239,7 +267,14 @@ export function createSvgRenderer(
     const style = `<style>@keyframes scroll{${keyframes}}.track{animation:scroll ${duration}s linear infinite}@media (prefers-reduced-motion:reduce){.track{animation:none}}</style>`;
     const copies = Math.ceil(width / period) + 1;
     const rows = Array.from({ length: copies }, (_, i) =>
-      row(sequence, stride, i * period, options.labels),
+      row(
+        sequence,
+        stride,
+        i * period,
+        options.labels,
+        options,
+        i * sequence.length,
+      ),
     ).join("");
     return document(
       width,

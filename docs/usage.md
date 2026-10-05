@@ -104,7 +104,7 @@ Both endpoints accept `theme=auto|light|dark`. Auto is the default; themed SVGs 
 
 ## Run and deploy
 
-Use the [public generator](https://icon-marquee.angus509938.chatgpt.site) without installing anything, or run locally with Bun 1.4.2+:
+Use the [public generator](https://angusu.de/icon-marquee/) without installing anything, or run locally with Bun 1.4.2+:
 
 ```sh
 bun install --frozen-lockfile
@@ -113,7 +113,7 @@ bun dev
 
 `bun dev` runs with hot reload; `bun start` runs production. `PORT` defaults to 3000. Optional `APP_NAME` defaults to `icon-marquee`. The server uses Bun/Hono; there is no frontend build step.
 
-`bun run build:static` exports a portable, browser-only generator to `dist/`. It uses relative local icon assets and no API backend, so it can also live on GitHub Pages or another static host. API URL export is hidden because static hosting does not run the optional HTTP API. The existing public Site is a legacy deployment, not the latest build. Moving to the owner's VPS under angusu.de is pending approval; do not republish to ChatGPT Sites. Use the local build for the latest features until that migration is complete.
+`bun run build:static` exports a portable, browser-only generator to `dist/`. It uses relative local icon assets and no API backend, so it can also live on GitHub Pages or another static host. API URL export is hidden because static hosting does not run the optional HTTP API. The public build is deployed from `dist/` at `https://angusu.de/icon-marquee/`.
 
 Deploy to a Bun-compatible host, or use Vercel's Hono preset with the included Bun configuration. No authentication is built in. Source visibility and endpoint access are independent: a private source repo does not protect a deployed API.
 
