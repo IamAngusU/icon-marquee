@@ -85,7 +85,7 @@ export function createSvgRenderer(
         : options.effect === "holo"
           ? '<stop stop-color="#7ffff2" stop-opacity="0"/><stop offset=".2" stop-color="#71e7ff"/><stop offset=".38" stop-color="#ada0ff"/><stop offset=".5" stop-color="#fff"/><stop offset=".6" stop-color="#ff94d9"/><stop offset=".76" stop-color="#ffe5a3"/><stop offset=".9" stop-color="#8fffd9"/><stop offset="1" stop-color="#8fffd9" stop-opacity="0"/>'
           : '<stop stop-color="#a8bccb" stop-opacity="0"/><stop offset=".24" stop-color="#d5e3ee"/><stop offset=".4" stop-color="#fff"/><stop offset=".48" stop-color="#71849a"/><stop offset=".5" stop-color="#e8f5ff"/><stop offset=".54" stop-color="#fff"/><stop offset=".7" stop-color="#94acbf"/><stop offset="1" stop-color="#c2d8e8" stop-opacity="0"/>';
-    return `<linearGradient id="surface-sheen" x1="0" y1=".2" x2="1" y2=".8">${stops}</linearGradient><clipPath id="surface-clip"><rect width="256" height="256" rx="40"/></clipPath><mask id="surface-border" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"><rect x="4" y="4" width="248" height="248" rx="36" fill="none" stroke="white" stroke-width="8"/></mask><style>.finish{animation-play-state:var(--effect-play,running)!important;pointer-events:none}@media(prefers-reduced-motion:reduce){.finish{animation:none!important;display:none}}</style>`;
+    return `<linearGradient id="surface-sheen" x1="0" y1=".5" x2="1" y2=".5">${stops}</linearGradient><clipPath id="surface-clip"><rect width="256" height="256" rx="40"/></clipPath><mask id="surface-border" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"><rect x="4" y="4" width="248" height="248" rx="36" fill="none" stroke="white" stroke-width="8"/></mask><style>.finish{animation-play-state:var(--effect-play,running)!important;pointer-events:none}@media(prefers-reduced-motion:reduce){.finish{animation:none!important;display:none}}</style>`;
   }
 
   function finish(options: IconRowOptions, index: number) {
@@ -109,26 +109,43 @@ export function createSvgRenderer(
     const varying = options.effectTiming === "random";
     const sparse = options.effectCoverage === "some";
     const variation = (options.effectVariation ?? 55) / 100;
-    const cycles = Array.from({ length: varying || sparse ? 8 : 1 }, () => ({
-      sweep: Math.max(
-        0.3,
-        duration * (varying ? 1 + (random() * 2 - 1) * variation : 1),
-      ),
-      wait:
-        Math.max(0.1, interval * (varying ? 0.5 + random() : 1)) +
-        (sparse ? duration * (2 + random() * 5) : 0),
-    }));
+    const cycles = Array.from({ length: varying || sparse ? 8 : 1 }, () => {
+      const angle = varying ? random() * 360 : 18;
+      const radians = (angle * Math.PI) / 180;
+      const offset = varying ? (random() * 2 - 1) * 72 : 0;
+      const centerX = 128 - Math.sin(radians) * offset;
+      const centerY = 128 + Math.cos(radians) * offset;
+      const distance = 640;
+      const startX = centerX - Math.cos(radians) * distance;
+      const startY = centerY - Math.sin(radians) * distance;
+      const endX = centerX + Math.cos(radians) * distance;
+      const endY = centerY + Math.sin(radians) * distance;
+      const transform = (x: number, y: number) =>
+        `translate(${x.toFixed(2)}px,${y.toFixed(2)}px) rotate(${angle.toFixed(2)}deg)`;
+      return {
+        sweep: Math.max(
+          0.3,
+          duration * (varying ? 1 + (random() * 2 - 1) * variation : 1),
+        ),
+        wait:
+          Math.max(0.1, interval * (varying ? 0.5 + random() : 1)) +
+          (sparse ? duration * (2 + random() * 5) : 0),
+        start: transform(startX, startY),
+        end: transform(endX, endY),
+      };
+    });
     const total = cycles.reduce((sum, c) => sum + c.sweep + c.wait, 0);
     let cursor = 0;
     const frames = cycles
-      .map(({ sweep, wait }) => {
+      .map(({ sweep, wait, start: from, end: to }, index) => {
         const start = (cursor / total) * 100;
         const end = ((cursor + sweep) / total) * 100;
         const cycleEnd = ((cursor + sweep + wait) / total) * 100;
         cursor += sweep + wait;
         // Both ends of the band sit fully outside the icon. The reset therefore
         // happens while invisible instead of exposing a rectangular loop seam.
-        return `${start.toFixed(4)}%{transform:translateX(0)}${end.toFixed(4)}%{transform:translateX(896px)}${Math.max(end, cycleEnd - 0.0001).toFixed(4)}%{transform:translateX(896px)}${cycleEnd.toFixed(4)}%{transform:translateX(0)}`;
+        const next = cycles[(index + 1) % cycles.length]?.start ?? from;
+        return `${start.toFixed(4)}%{transform:${from}}${end.toFixed(4)}%{transform:${to}}${Math.max(end, cycleEnd - 0.0001).toFixed(4)}%{transform:${to}}${cycleEnd.toFixed(4)}%{transform:${next}}`;
       })
       .join("");
     const delay =
@@ -140,7 +157,7 @@ export function createSvgRenderer(
     const opacity = Math.min(1, Math.max(0, (options.intensity ?? 35) / 100));
     const strength =
       options.effect === "glint" ? Math.min(1, opacity * 1.65) : opacity;
-    return `<style>@keyframes finish-${index}{${frames}}</style><g clip-path="url(#surface-clip)"${options.effectArea === "border" ? ' mask="url(#surface-border)"' : ""} pointer-events="none" opacity="${strength}"><path class="finish ${options.effect}" d="M-512 0h448l-128 256h-448z" fill="url(#surface-sheen)" style="animation:finish-${index} ${total.toFixed(4)}s linear var(--finish-delay,${delay.toFixed(4)}s) infinite"/></g>`;
+    return `<style>@keyframes finish-${index}{${frames}}</style><g clip-path="url(#surface-clip)"${options.effectArea === "border" ? ' mask="url(#surface-border)"' : ""} pointer-events="none" opacity="${strength}"><path class="finish ${options.effect}" d="M-256-640h512v1280h-512z" fill="url(#surface-sheen)" style="animation:finish-${index} ${total.toFixed(4)}s linear var(--finish-delay,${delay.toFixed(4)}s) infinite"/></g>`;
   }
 
   function finishUseStyle(

@@ -56,13 +56,19 @@ test("effect schedules stagger, vary per sweep and target only chosen logos", ()
   expect(new Set(schedules).size).toBe(2);
   expect(svg).toContain("prefers-reduced-motion:reduce");
   expect(svg).not.toContain("<script");
-  expect(svg).toContain('d="M-512 0h448l-128 256h-448z"');
+  expect(svg).toContain('d="M-256-640h512v1280h-512z"');
+  const angles = [...svg.matchAll(/rotate\(([-\d.]+)deg\)/g)].map(
+    (match) => match[1],
+  );
+  expect(new Set(angles).size).toBeGreaterThan(4);
+  expect(svg).toMatch(/translate\([^,]+,[^)]+\) rotate\(/);
   expect(svg).not.toContain('x="-128" width="512"');
   expect(
     new Set([...svg.matchAll(/--finish-delay:([^s]+s)/g)].map((m) => m[1]))
       .size,
   ).toBeGreaterThan(2);
   const stagger = renderer.icons(simpleAssets, { effect: "glint" });
+  expect(stagger).toContain("rotate(18.00deg)");
   expect(
     new Set([...stagger.matchAll(/--finish-delay:([^s]+s)/g)].map((m) => m[1]))
       .size,
