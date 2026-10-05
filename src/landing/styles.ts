@@ -127,7 +127,17 @@ kbd { font: 11px var(--sans); border: 1px solid var(--line); border-radius: 3px;
 .control { margin-top: 20px; }
 .control label { display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 500; }
 .control output { color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; font-weight: 400; }
-input[type="range"] { display: block; width: 100%; height: 18px; margin: 9px 0 0; accent-color: var(--blue); cursor: pointer; }
+input[type="range"] { --range-progress: 50%; display: block; width: 100%; height: 24px; margin: 8px 0 0; appearance: none; -webkit-appearance: none; border: 0; background: transparent; cursor: pointer; }
+input[type="range"]::-webkit-slider-runnable-track { height: 6px; border: 1px solid #cbd5e6; border-radius: 999px; background: linear-gradient(90deg,var(--blue) 0 var(--range-progress),#dfe6f1 var(--range-progress) 100%); box-shadow: inset 0 1px 2px #1e335914; }
+input[type="range"]::-webkit-slider-thumb { width: 17px; height: 17px; margin-top: -6px; appearance: none; -webkit-appearance: none; border: 3px solid #fff; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 1px #244cc4,0 2px 5px #1d315b30; transition: transform .15s ease,box-shadow .15s ease; }
+input[type="range"]::-moz-range-track { height: 4px; border: 1px solid #cbd5e6; border-radius: 999px; background: #dfe6f1; box-shadow: inset 0 1px 2px #1e335914; }
+input[type="range"]::-moz-range-progress { height: 4px; border: 1px solid var(--blue); border-radius: 999px; background: var(--blue); }
+input[type="range"]::-moz-range-thumb { width: 11px; height: 11px; border: 3px solid #fff; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 1px #244cc4,0 2px 5px #1d315b30; transition: transform .15s ease,box-shadow .15s ease; }
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.08); }
+input[type="range"]:hover::-moz-range-thumb { transform: scale(1.08); }
+input[type="range"]:focus-visible { outline: none; }
+input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px #fff,0 0 0 6px #7c9cff; }
+input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 3px #fff,0 0 0 6px #7c9cff; }
 input[type="range"]:disabled { cursor: not-allowed; opacity: .35; }
 .direction-control { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; font-size: 11px; }
 .compact { margin: 0; padding: 2px; }

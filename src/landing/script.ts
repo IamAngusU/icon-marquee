@@ -290,6 +290,20 @@ function composer(
     element("effect-targets").hidden = effects.effectCoverage !== "selected";
     element("variation-control").hidden = effects.effectTiming !== "random";
     yaml.value = codec.stringify(effects);
+    renderRanges();
+  }
+
+  function renderRanges() {
+    document
+      .querySelectorAll<HTMLInputElement>('input[type="range"]')
+      .forEach((control) => {
+        const min = Number(control.min);
+        const span = Number(control.max) - min;
+        const progress = span
+          ? ((Number(control.value) - min) / span) * 100
+          : 0;
+        control.style.setProperty("--range-progress", `${progress}%`);
+      });
   }
 
   function renderControls() {
@@ -310,6 +324,7 @@ function composer(
       button.disabled = mode === "icons";
     });
     element("shuffle-note").hidden = order !== "shuffle" || mode === "icons";
+    renderRanges();
   }
 
   function renderSnippet() {

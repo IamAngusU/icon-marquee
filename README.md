@@ -6,7 +6,7 @@ Pick from 1,041 icons, add your own logos, and export one animated SVG. No insta
 
 [![Open generator](docs/assets/generator.svg)](https://angusu.de/icon-marquee/)
 
-![Icon Marquee — Your stack. In good motion.](docs/assets/hero.svg)
+![A real Icon Marquee export with a broad mix of icons](docs/assets/icon-marquee.svg)
 
 Download the SVG, commit it beside your README, paste:
 

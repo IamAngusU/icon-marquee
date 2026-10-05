@@ -10,7 +10,7 @@ Repeat preserves your order, including deliberate duplicates. Shuffle deduplicat
 
 ## Effects and motion presets
 
-Open **Effects & behavior** for Glint, Chrome or Holo, on the whole icon or only its rounded border. Original leaves the logos unchanged. Ghost edges softly fade incoming/outgoing icons (0 turns the fade off). Finish timing can be staggered, together, or random with varying sweep durations and rests. Choose all icons, occasional accents, or names from your lineup. These effects work in exported SVGs without JavaScript. Random exports repeat a seeded eight-sweep schedule per asset; repeated copies of the same logo share that schedule. Occasional accents are probabilistic, not a guarantee that exactly one icon shines at a time.
+Open **Effects & behavior** for Glint, Chrome or Holo, on the whole icon or only its rounded border. Original leaves the logos unchanged. Ghost edges softly fade incoming/outgoing icons (0 turns the fade off). Finish timing can be staggered, together, or random with varying sweep durations and rests. Choose all icons, occasional accents, or names from your lineup. These effects work in exported SVGs without JavaScript. Random exports repeat a seeded eight-sweep schedule per asset; repeated copies inherit that schedule with independent phases. Occasional accents are probabilistic, not a guarantee that exactly one icon shines at a time.
 
 Optional icon-name tooltips work in the editor (hover or keyboard focus, Escape to dismiss) and as native titles in inline HTML. GitHub embeds a passive image and does not expose per-icon tooltips. Instant/Ease/Custom Bézier pause and hover-to-pause are editor controls; exported images keep looping. The editor pauses both scroll and finishes at the current position.
 

@@ -10,6 +10,8 @@ describe("GET /", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toContain("text/html");
     expect(body).toContain('id="preview" role="img"');
+    expect(body).toContain("::-webkit-slider-runnable-track");
+    expect(body).toContain("--range-progress");
   });
 
   test("allows only the inline script whose hash is in the CSP", async () => {

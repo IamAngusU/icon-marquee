@@ -7,12 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": [
-      "**",
-      "!!public/icons",
-      "!!docs/assets/hero.svg",
-      "!!docs/assets/icon-marquee.svg"
-    ]
+    "includes": ["**", "!!public/icons", "!!docs/assets/icon-marquee.svg"]
   },
   "formatter": {
     "enabled": true,
