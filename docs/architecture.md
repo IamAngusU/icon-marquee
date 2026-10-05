@@ -14,6 +14,7 @@ src/
     script.ts            Typed, self-contained client function serialized for the browser
     preview.ts           Bounded live queue and position-preserving animation clock
     logos.ts             Local image decoding and rasterization
+    logo-tools.ts        Pixel-only monochrome detection and rounded adaptive logo tiles
     logo.ts              Existing SVG favicon
   llms/index.ts          API reference generated from config and registry
   utils/
@@ -90,11 +91,13 @@ The preview imports the generated SVG, disables its track CSS animation, and use
 
 Advanced options stay in one collapsed panel. The self-contained preset codec accepts only the documented flat YAML subset, with a 4 KB input limit and no scripts, custom tags, aliases or arbitrary CSS. Applied effects and motion settings are serialized into editor links.
 
-Uploaded SVG/PNG/JPEG/WebP files are decoded in an isolated image context and rasterized to 256px transparent PNGs (2 MB/file, 20 per session, bounded dimensions and load timeout). Raw uploaded markup never enters the DOM. Embedded data URLs keep custom exports self-contained. Files stay in a memory map until reload, with no server upload or persistent browser storage. Editor-link and URL export are disabled when selected logos require local data.
+Uploaded SVG/PNG/JPEG/WebP files are decoded in an isolated image context and rasterized to 256px PNGs (2 MB/file, 20 per session, bounded dimensions and load timeout). Raw uploaded markup never enters the DOM. All uploads sit inside the same 40/256-radius clip and adaptive background used by the library tiles. A conservative pixel classifier detects flat neutral transparent marks or simple two-tone neutral artwork with a solid light/dark border background. It preserves alpha, removes a detected solid background, and produces a white alpha-mask PNG. Foreground and background colors then swap using scoped SVG media rules, including inside exported images. Colored or ambiguous sources keep their original pixels. Auto/Original/Monochrome is selectable per logo; monochrome forces the derived shape mask, which is most useful for simple transparent artwork, not photos.
+
+The original raster is retained so mode switches do not accumulate transformations. Library thumbnails use the same generated SVG as exports. Embedded data URLs keep custom exports self-contained. Files stay in a memory map until reload, with no server upload or persistent browser storage. Editor-link and URL export are disabled when selected logos require local data.
 
 Markdown uses the downloaded SVG filename; HTML copies inline SVG and URL export uses the API. Optional tooltip labels are escaped SVG titles on each exported use element. The preview adds text-only tooltips for pointer and keyboard focus; Escape dismisses them. README image embeddings do not expose per-icon interactions. Clipboard failures select the requested text for manual copying.
 
-Composer SVG/HTML exports contain a version-1, URI-encoded JSON project in a metadata element. Import reads only that exact envelope, validates bounds, enums, icon names and effect settings, and reconstructs the design from trusted bundled icons or embedded PNG pixels. Uploaded markup is never parsed into a document or executed; URLs and non-PNG data are rejected. PNGs are decoded and rasterized again before an atomic state replacement. File/text inputs are bounded to 12 MB, with 100 icons and 20 local logos. Existing files without metadata cannot be reconstructed. API-generated SVGs do not contain editor project metadata.
+Composer SVG/HTML exports contain a version-1, URI-encoded JSON project in a metadata element. Import reads only that exact envelope, validates bounds, enums, icon names and effect settings, and reconstructs the design from trusted bundled icons or embedded PNG pixels. Each local logo can include an optional validated themeMode; older projects without it use Auto. Uploaded markup is never parsed into a document or executed; URLs and non-PNG data are rejected. Original PNGs are decoded and masks regenerated before an atomic state replacement. File/text inputs are bounded to 12 MB, with 100 icons and 20 local logos. Existing files without metadata cannot be reconstructed. API-generated SVGs do not contain editor project metadata.
 
 Configuration is stored in the URL fragment and restored on load. Internal section navigation preserves it. Copying an editor link includes the active settings; these URLs are origin-specific. No account, database, analytics or local-storage persistence is used.
 

@@ -225,6 +225,7 @@ export const config = {
     maxProjectBytes: 12582912,
     maxLogoCount: 20,
     logoRasterPx: 256,
+    logoAppearance: { radius: 40, dark: "#15191C", light: "#F4F2ED" },
     repoUrl: "https://github.com/IamAngusU/icon-marquee",
     authorUrl: "https://github.com/IamAngusU",
     heroIcons:

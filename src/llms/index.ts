@@ -61,7 +61,7 @@ Both SVG endpoints accept \`effect=none|glint|chrome|holo\`, \`intensity=0..100\
 
 Download an SVG and commit it beside the README: \`![My stack](./icon-marquee.svg)\`. No hosted API is needed for that file. URL embeds need a publicly reachable server.
 
-The composer accepts local SVG, PNG, JPEG and WebP logos up to 2 MB each (20 per session). These are rasterized locally to embedded 256px PNGs; no files are uploaded. Download before reloading. Custom logos cannot be included in API or editor links.
+The composer accepts local SVG, PNG, JPEG and WebP logos up to 2 MB each (20 per session). These are rasterized locally to embedded 256px PNGs; no files are uploaded. Uploads use the same rounded tile shape as the library. Auto detects simple monochrome artwork and generates adaptive light/dark colors; colored or ambiguous artwork keeps its pixels. Per-logo Original colors and Monochrome overrides are available. These settings survive project re-import. Download before reloading. Custom logos cannot be included in API or editor links.
 
 ## Examples
 

@@ -1,3 +1,4 @@
+import type { LogoThemeMode } from "../landing/logo-tools";
 import type { createPresetCodec, EffectPreset } from "./preset";
 
 export type MarqueeProject = {
@@ -13,7 +14,12 @@ export type MarqueeProject = {
   seed: number;
   surface: "light" | "dark";
   effects: EffectPreset;
-  logos: { key: string; label: string; dataUrl: string }[];
+  logos: {
+    key: string;
+    label: string;
+    dataUrl: string;
+    themeMode?: LogoThemeMode;
+  }[];
 };
 
 // Read only our encoded JSON envelope; never parse or execute uploaded markup.
@@ -73,7 +79,10 @@ export function createProjectCodec(
     const logos = data.logos.map((logo: unknown) => {
       if (!logo || typeof logo !== "object")
         throw new Error("Invalid local logo.");
-      const { key, label, dataUrl } = logo as Record<string, unknown>;
+      const { key, label, dataUrl, themeMode } = logo as Record<
+        string,
+        unknown
+      >;
       if (
         typeof key !== "string" ||
         !/^custom-\d{1,8}$/.test(key) ||
@@ -86,7 +95,19 @@ export function createProjectCodec(
       )
         throw new Error("Only embedded PNG logos are supported.");
       keys.add(key);
-      return { key, label, dataUrl };
+      if (
+        themeMode !== undefined &&
+        !["auto", "original", "monochrome"].includes(themeMode as string)
+      )
+        throw new Error("Invalid logo theme mode.");
+      return {
+        key,
+        label,
+        dataUrl,
+        ...(themeMode === undefined
+          ? {}
+          : { themeMode: themeMode as LogoThemeMode }),
+      };
     });
     if (
       data.names.some(

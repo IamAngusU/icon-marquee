@@ -1,10 +1,22 @@
-export type LocalLogo = { label: string; dataUrl: string; svg: string };
+import type { createLogoTools, LogoThemeMode } from "./logo-tools";
+
+export type LocalLogo = {
+  label: string;
+  dataUrl: string;
+  maskDataUrl: string;
+  automatic: boolean;
+  svg: string;
+  thumbnail: string;
+  adaptive: boolean;
+  themeMode: LogoThemeMode;
+};
 
 // Decode as an isolated image, then keep only pixels; never insert uploaded SVG markup.
 export async function readLocalLogo(
   file: File,
   maxBytes: number,
   size: number,
+  tools: ReturnType<typeof createLogoTools>,
 ): Promise<LocalLogo> {
   if (!/\.(svg|png|jpe?g|webp)$/i.test(file.name))
     throw new Error("Choose an SVG, PNG, JPEG or WebP logo.");
@@ -56,10 +68,20 @@ export async function readLocalLogo(
       height,
     );
     const dataUrl = canvas.toDataURL("image/png");
+    const analysis = tools.analyze(
+      context.getImageData(0, 0, size, size).data,
+      size,
+    );
+    const maskImage = context.createImageData(size, size);
+    maskImage.data.set(analysis.mask);
+    context.putImageData(maskImage, 0, 0);
+    const maskDataUrl = canvas.toDataURL("image/png");
     return {
       label: file.name.replace(/\.[^.]+$/, "").slice(0, 50),
       dataUrl,
-      svg: `<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg"><image href="${dataUrl}" width="256" height="256"/></svg>`,
+      maskDataUrl,
+      automatic: analysis.automatic,
+      ...tools.render(dataUrl, maskDataUrl, analysis.automatic),
     };
   } finally {
     URL.revokeObjectURL(url);

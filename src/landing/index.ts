@@ -59,6 +59,7 @@ export function createLandingPage(staticSite = false) {
           <input id="logo-files" type="file" accept=".svg,.png,.jpg,.jpeg,.webp" multiple hidden />
           <p class="field-help">SVG, PNG, JPG or WebP. Up to 2 MB each. Files stay in your browser.</p>
           <p id="logo-status" class="field-help" role="status"></p>
+          <details id="local-logo-styles" class="local-logo-styles" hidden><summary>Your logo colors</summary><p class="field-help">Auto adapts simple black &amp; white logos. All uploads get matching rounded corners. Original colors skips recoloring.</p><div id="local-logo-options"></div></details>
           <label class="search-field"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search ${iconCount} icons…" aria-label="Search icons by name or alias" autocomplete="off" /><kbd>/</kbd></label>
           <p id="results-count" class="results-count">${iconCount} icons</p>
           <div id="catalog" class="catalog" aria-label="Available icons"></div>

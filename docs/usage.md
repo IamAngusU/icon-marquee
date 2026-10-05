@@ -58,7 +58,15 @@ Use **Your logos** to add SVG, PNG, JPEG or WebP files, up to 2 MB per file and 
 
 Files never leave the browser. They are decoded in an isolated image context and rendered to transparent 256×256 PNGs, preserving aspect ratio. This removes active SVG markup and keeps the exported file self-contained. Custom SVGs are therefore not retained as editable vectors, and animation/external resources in uploaded SVGs are not supported. Built-in icons remain vector.
 
-Download before refreshing: local logos live in memory, not browser storage. Editor sharing and live URL export are disabled while local logos are selected. They require the actual downloaded SVG. Uploaded logos do not automatically gain light/dark variants. Use only assets you have permission to use.
+All uploads get the same rounded tile shape as the built-in icons. **Your logo colors** offers a per-logo choice:
+
+- **Auto** detects simple black/white or near-neutral logos, including transparent marks and solid light/dark backgrounds. These switch between a light mark on a dark tile and a dark mark on a light tile. Colored or ambiguous artwork keeps its original pixels.
+- **Original colors** keeps the source colors, with matching rounded corners.
+- **Monochrome** explicitly uses the derived shape mask. Best for simple transparent artwork; not a photo recoloring tool.
+
+Detection is conservative, not semantic image recognition. Use Original colors if the automatic result changes intended details. Adaptive colors work in the preview and the self-contained exported SVG, with no second download. Theme choice and original pixels survive SVG/HTML re-import; older project exports default to Auto.
+
+Download before refreshing: local logos live in memory, not browser storage. Editor sharing and live URL export are disabled while local logos are selected. They require the actual downloaded SVG. Use only assets you have permission to use.
 
 ## HTTP API
 

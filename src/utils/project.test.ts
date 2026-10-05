@@ -58,6 +58,19 @@ test("custom logo metadata stays escaped and uses embedded PNG only", () => {
     ],
   };
   const exported = codec.embed(svg, local);
+  for (const themeMode of ["auto", "original", "monochrome"] as const) {
+    const themed = {
+      ...local,
+      logos: local.logos.map((logo) => ({ ...logo, themeMode })),
+    };
+    expect(codec.read(codec.embed(svg, themed))).toEqual(themed);
+  }
+  expect(() =>
+    codec.validate({
+      ...local,
+      logos: [{ ...local.logos[0], themeMode: "<script>" }],
+    }),
+  ).toThrow();
   expect(codec.read(exported)).toEqual(local);
   expect(exported).not.toContain("<script");
   for (const dataUrl of [

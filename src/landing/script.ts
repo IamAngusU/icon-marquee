@@ -6,6 +6,7 @@ import { iconNames } from "../utils/registry";
 import { rendererSettings } from "../utils/render";
 import { scopeIds } from "../utils/scope-ids";
 import { createSvgRenderer } from "../utils/svg";
+import { createLogoTools, type LogoThemeMode } from "./logo-tools";
 import { type LocalLogo, readLocalLogo } from "./logos";
 import { createLivePreview } from "./preview";
 
@@ -29,6 +30,7 @@ function composer(
   motion: ReturnType<typeof createMotionTools>,
   codec: ReturnType<typeof createPresetCodec>,
   projectCodec: ReturnType<typeof createProjectCodec>,
+  logoTools: ReturnType<typeof createLogoTools>,
 ) {
   function element<T extends HTMLElement>(id: string): T {
     const found = document.getElementById(id);
@@ -417,7 +419,7 @@ function composer(
       );
       if (nameSet.has(canonical(name)) || customLogos.has(name)) {
         const img = document.createElement("img");
-        img.src = customLogos.get(name)?.dataUrl ?? thumbnail(name, 24);
+        img.src = customLogos.get(name)?.thumbnail ?? thumbnail(name, 24);
         img.alt = "";
         li.append(img);
       }
@@ -507,7 +509,7 @@ function composer(
         (chosen.has(name) ? "Remove " : "Add ") + name,
       );
       const img = document.createElement("img");
-      img.src = customLogos.get(name)?.dataUrl ?? thumbnail(name, 40);
+      img.src = customLogos.get(name)?.thumbnail ?? thumbnail(name, 40);
       img.alt = "";
       img.loading = "lazy";
       img.width = 35;
@@ -717,6 +719,7 @@ function composer(
           key,
           label: logo.label,
           dataUrl: logo.dataUrl,
+          themeMode: logo.themeMode,
         })),
     };
   }
@@ -750,8 +753,18 @@ function composer(
           new File([bytes], `${logo.key}.png`, { type: "image/png" }),
           data.maxLogoBytes,
           data.logoRasterPx,
+          logoTools,
         );
-        logos.set(logo.key, { ...clean, label: logo.label });
+        logos.set(logo.key, {
+          ...clean,
+          label: logo.label,
+          ...logoTools.render(
+            clean.dataUrl,
+            clean.maskDataUrl,
+            clean.automatic,
+            logo.themeMode ?? "auto",
+          ),
+        });
       }
       customLogos.clear();
       for (const [key, logo] of logos) customLogos.set(key, logo);
@@ -796,9 +809,60 @@ function composer(
     invalidate();
     renderSelected();
     renderCatalog();
+    renderLocalLogos();
     renderControls();
     saveState();
     timer = setTimeout(update, 180);
+  }
+
+  function renderLocalLogos() {
+    const panel = element("local-logo-styles");
+    const list = element("local-logo-options");
+    panel.hidden = customLogos.size === 0;
+    list.replaceChildren();
+    for (const [key, logo] of customLogos) {
+      const row = document.createElement("div");
+      row.className = "local-logo-style";
+      const label = document.createElement("label");
+      label.htmlFor = `logo-theme-${key}`;
+      label.textContent = logo.label;
+      const description = document.createElement("small");
+      description.textContent = logo.adaptive
+        ? "Adaptive monochrome"
+        : "Original colors";
+      const select = document.createElement("select");
+      select.className = "field-input";
+      select.id = label.htmlFor;
+      select.setAttribute("aria-label", `Colors for ${logo.label}`);
+      for (const [value, text] of [
+        ["auto", "Auto"],
+        ["original", "Original colors"],
+        ["monochrome", "Monochrome"],
+      ]) {
+        const option = document.createElement("option");
+        option.value = value ?? "auto";
+        option.textContent = text ?? "Auto";
+        select.append(option);
+      }
+      select.value = logo.themeMode;
+      select.addEventListener("change", () => {
+        Object.assign(
+          logo,
+          logoTools.render(
+            logo.dataUrl,
+            logo.maskDataUrl,
+            logo.automatic,
+            select.value as LogoThemeMode,
+          ),
+        );
+        changed();
+        element<HTMLSelectElement>(select.id).focus({ preventScroll: true });
+      });
+      const name = document.createElement("div");
+      name.append(label, description);
+      row.append(name, select);
+      list.append(row);
+    }
   }
 
   async function copyText(text: string, success: string) {
@@ -920,7 +984,12 @@ function composer(
         break;
       }
       try {
-        const logo = await readLogo(file, data.maxLogoBytes, data.logoRasterPx);
+        const logo = await readLogo(
+          file,
+          data.maxLogoBytes,
+          data.logoRasterPx,
+          logoTools,
+        );
         const key = `custom-${++logoCounter}`;
         customLogos.set(key, logo);
         input.value = [...names(), key].join(",");
@@ -1134,7 +1203,7 @@ export function createClientScript(staticSite = false) {
     logoRasterPx: config.landing.logoRasterPx,
     staticSite,
     effects: config.landing.effectDefaults,
-  })}, (${createSvgRenderer.toString()})(${JSON.stringify(rendererSettings)}, ${scopeIds.toString()}, ${motion}), ${createLivePreview.toString()}, ${readLocalLogo.toString()}, ${motion}, (${createPresetCodec.toString()})(${defaults}), (${createProjectCodec.toString()}) ((${createPresetCodec.toString()})(${defaults}), ${config.landing.maxProjectBytes}));`;
+  })}, (${createSvgRenderer.toString()})(${JSON.stringify(rendererSettings)}, ${scopeIds.toString()}, ${motion}), ${createLivePreview.toString()}, ${readLocalLogo.toString()}, ${motion}, (${createPresetCodec.toString()})(${defaults}), (${createProjectCodec.toString()}) ((${createPresetCodec.toString()})(${defaults}), ${config.landing.maxProjectBytes}), (${createLogoTools.toString()})(${JSON.stringify(config.landing.logoAppearance)}));`;
 }
 
 export const script = createClientScript();

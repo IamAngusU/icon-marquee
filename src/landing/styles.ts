@@ -99,6 +99,12 @@ h2 { font-weight: 600; font-size: 17px; letter-spacing: -.4px; }
 .upload-button { border: 1px solid #b9caf8; border-radius: 6px; background: #f0f4ff; color: #3158b1; padding: 7px 10px; font-size: 12px; white-space: nowrap; }
 .upload-button:hover { background: #e3ebff; }
 #logo-status:empty { display: none; }
+.local-logo-styles { margin-top: 12px; border: 1px solid var(--line); border-radius: 7px; padding: 10px; }
+.local-logo-styles summary { cursor: pointer; font-size: 12px; }
+.local-logo-style { display: grid; grid-template-columns: minmax(0,1fr) 140px; gap: 12px; align-items: center; margin-top: 12px; }
+.local-logo-style label { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.local-logo-style small { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+.local-logo-style select { padding-block: 7px; }
 .search-field { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); background: #f9fbff; border-radius: 8px; padding: 9px 12px; margin: 16px 0; color: var(--muted); }
 .search-field > span { font-size: 22px; line-height: 1; }
 .search-field input { width: 100%; min-width: 0; border: 0; background: transparent; font-size: 12px; color: var(--ink); }
