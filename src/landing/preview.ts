@@ -1,10 +1,25 @@
+import type { createMotionTools, MotionSettings } from "../utils/motion";
 import type { MarqueeOptions } from "../utils/svg";
 
-export function createLivePreview(host: HTMLElement) {
+export function createLivePreview(
+  host: HTMLElement,
+  motion: ReturnType<typeof createMotionTools>,
+) {
   let frame = 0;
   let previousTime = 0;
   let offset = 0;
   let paused = false;
+  let hovering = false;
+  let velocity = 1;
+  let fromVelocity = 1;
+  let targetVelocity = 1;
+  let transitionElapsed = 0;
+  let settings: MotionSettings = {
+    pauseStyle: "instant",
+    pauseDuration: 450,
+    bezier: [0.42, 0, 0.58, 1],
+    hoverPause: false,
+  };
   let animated = false;
   let track: SVGGElement | null = null;
   let queue: number[] = [];
@@ -39,9 +54,20 @@ export function createLivePreview(host: HTMLElement) {
 
   function tick(time: number) {
     frame = 0;
-    if (!animated || paused || reduced.matches || document.hidden) return;
-    if (previousTime)
-      offset += (Math.min(time - previousTime, 64) * unitsPerSecond) / 1000;
+    if (!animated || reduced.matches || document.hidden) return;
+    const dt = previousTime ? Math.min(time - previousTime, 64) : 0;
+    const previousVelocity = velocity;
+    if (velocity !== targetVelocity) {
+      transitionElapsed += dt;
+      const progress = Math.min(1, transitionElapsed / settings.pauseDuration);
+      const curve =
+        settings.pauseStyle === "bezier" ? settings.bezier : [0.42, 0, 0.58, 1];
+      velocity =
+        fromVelocity +
+        (targetVelocity - fromVelocity) * motion.ease(progress, curve);
+      if (progress === 1) velocity = targetVelocity;
+    }
+    offset += (dt * unitsPerSecond * (previousVelocity + velocity)) / 2000;
     previousTime = time;
     while (offset >= stride) {
       offset -= stride;
@@ -55,20 +81,47 @@ export function createLivePreview(host: HTMLElement) {
       drawQueue();
     }
     draw();
-    frame = requestAnimationFrame(tick);
+    host.style.setProperty(
+      "--effect-play",
+      velocity === 0 ? "paused" : "running",
+    );
+    if (velocity > 0 || targetVelocity > 0) frame = requestAnimationFrame(tick);
   }
 
   function sync() {
     cancelAnimationFrame(frame);
     frame = 0;
     previousTime = 0;
-    if (animated && !paused && !reduced.matches && !document.hidden)
+    if (
+      animated &&
+      (velocity > 0 || targetVelocity > 0) &&
+      !reduced.matches &&
+      !document.hidden
+    )
       frame = requestAnimationFrame(tick);
   }
 
   function setPaused(value: boolean) {
     paused = value;
+    retarget();
+  }
+
+  function retarget() {
+    fromVelocity = velocity;
+    targetVelocity = paused || (hovering && settings.hoverPause) ? 0 : 1;
+    transitionElapsed = 0;
+    if (settings.pauseStyle === "instant" || !animated)
+      velocity = targetVelocity;
+    host.style.setProperty(
+      "--effect-play",
+      velocity === 0 ? "paused" : "running",
+    );
     sync();
+  }
+
+  function setMotion(value: MotionSettings) {
+    settings = value;
+    retarget();
   }
 
   function setTheme(theme: string) {
@@ -123,37 +176,37 @@ export function createLivePreview(host: HTMLElement) {
     right = options.direction === "right";
     const length = Math.ceil(root.viewBox.baseVal.width / stride) + 2;
     let cursor = right ? -1 : length;
-    let bag: number[] = [];
-    let last = -1;
+    const pick = motion.shuffle(count);
     next = () => {
       if (options.order !== "shuffle") {
         const value = ((cursor % count) + count) % count;
         cursor += right ? -1 : 1;
         return value;
       }
-      if (!bag.length) {
-        bag = Array.from({ length: count }, (_, i) => i);
-        for (let i = count - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [bag[i], bag[j]] = [bag[j] ?? 0, bag[i] ?? 0];
-        }
-        if (count > 1 && bag.at(-1) === last)
-          [bag[0], bag[count - 1]] = [bag[count - 1] ?? 0, bag[0] ?? 0];
-      }
-      last = bag.pop() ?? 0;
-      return last;
+      return pick();
     };
     queue = Array.from({ length }, (_, i) =>
       options.order === "shuffle" ? next() : i % count,
     );
+    if (right && options.order === "shuffle") queue.reverse();
     offset = 0;
     drawQueue();
     draw();
     animated = true;
+    velocity = paused || (hovering && settings.hoverPause) ? 0 : 1;
+    targetVelocity = velocity;
     sync();
   }
 
   reduced.addEventListener("change", sync);
   document.addEventListener("visibilitychange", sync);
-  return { show, clear, setPaused, setTheme };
+  host.addEventListener("pointerenter", () => {
+    hovering = true;
+    if (settings.hoverPause) retarget();
+  });
+  host.addEventListener("pointerleave", () => {
+    hovering = false;
+    if (settings.hoverPause) retarget();
+  });
+  return { show, clear, setPaused, setTheme, setMotion };
 }

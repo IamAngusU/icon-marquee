@@ -1,4 +1,13 @@
-export type IconRowOptions = { heightPx?: number; gapPx?: number };
+import type { createMotionTools } from "./motion";
+
+export type IconRowOptions = {
+  heightPx?: number;
+  gapPx?: number;
+  effect?: "none" | "glint" | "chrome";
+  intensity?: number;
+  effectDuration?: number;
+  theme?: "auto" | "light" | "dark";
+};
 export type MarqueeOptions = IconRowOptions & {
   widthPx?: number;
   speedPxPerS?: number;
@@ -20,6 +29,7 @@ export type RendererSettings = {
 export function createSvgRenderer(
   settings: RendererSettings,
   scopeIds: (svg: string, prefix: string) => string,
+  motion: ReturnType<typeof createMotionTools>,
 ) {
   function layout(options: IconRowOptions) {
     const height = options.heightPx ?? settings.heightPx;
@@ -36,26 +46,50 @@ export function createSvgRenderer(
       state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
       return state / 4294967296;
     };
-    const result: number[] = [];
-    for (let pass = 0; pass < settings.shufflePasses; pass++) {
-      const bag = Array.from({ length: count }, (_, index) => index);
-      for (let i = bag.length - 1; i > 0; i--) {
-        const j = Math.floor(random() * (i + 1));
-        [bag[i], bag[j]] = [bag[j] ?? 0, bag[i] ?? 0];
+    const length = count * settings.shufflePasses;
+    const cooldown = Math.min(count - 1, Math.max(1, Math.floor(count / 2)));
+    for (let attempt = 0; attempt < 64; attempt++) {
+      const next = motion.shuffle(count, random);
+      const result = Array.from({ length }, next);
+      let seamless = true;
+      for (let i = 0; i < cooldown; i++) {
+        for (let distance = 1; distance <= cooldown; distance++) {
+          if (result[i] === result[(i - distance + length) % length])
+            seamless = false;
+        }
       }
-      if (count > 1 && bag[0] === result.at(-1)) {
-        [bag[0], bag[1]] = [bag[1] ?? 0, bag[0] ?? 0];
-      }
-      result.push(...bag);
+      if (seamless) return result;
     }
-    return result;
+    // A cyclic permutation is a bounded fallback for pathological random streams.
+    const first = Array.from({ length: count }, (_, i) => i);
+    for (let i = count - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [first[i], first[j]] = [first[j] ?? 0, first[i] ?? 0];
+    }
+    return Array.from({ length }, (_, i) => first[i % count] ?? 0);
   }
 
-  function definitions(svgs: readonly string[]) {
+  function effects(options: IconRowOptions) {
+    if (!options.effect || options.effect === "none") return "";
+    const opacity = Math.min(1, Math.max(0, (options.intensity ?? 35) / 100));
+    const duration = Math.min(20, Math.max(1, options.effectDuration ?? 5));
+    const shine = options.effect === "glint";
+    return `<linearGradient id="surface-sheen" x1="0" y1="0" x2="${shine ? "1" : "0"}" y2="1"><stop stop-color="#fff" stop-opacity="0"/><stop offset=".4" stop-color="#fff" stop-opacity=".08"/><stop offset=".5" stop-color="#fff" stop-opacity="${opacity}"/><stop offset=".57" stop-color="#12213a" stop-opacity="${opacity / 2}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="surface-clip"><rect width="256" height="256" rx="40"/></clipPath>${shine ? `<style>@keyframes glint{0%,25%{transform:translateX(-300px)}65%,100%{transform:translateX(300px)}}.glint{animation:glint ${duration}s ease-in-out infinite;animation-play-state:var(--effect-play,running)}@media(prefers-reduced-motion:reduce){.glint{animation:none;display:none}}</style>` : ""}`;
+  }
+
+  function definitions(svgs: readonly string[], options: IconRowOptions) {
+    const finish =
+      options.effect && options.effect !== "none"
+        ? `<g clip-path="url(#surface-clip)" pointer-events="none"><rect class="${options.effect === "glint" ? "glint" : "chrome"}" width="256" height="256" fill="url(#surface-sheen)"/></g>`
+        : "";
     return (
       "<defs>" +
+      effects(options) +
       svgs
-        .map((svg, i) => `<g id="asset-${i}">${scopeIds(svg, `i${i}`)}</g>`)
+        .map(
+          (svg, i) =>
+            `<g id="asset-${i}">${scopeIds(svg, `i${i}`)}${finish}</g>`,
+        )
         .join("") +
       "</defs>"
     );
@@ -70,7 +104,18 @@ export function createSvgRenderer(
       .join("");
   }
 
-  function document(width: number, height: number, content: string) {
+  function document(
+    width: number,
+    height: number,
+    content: string,
+    theme = "auto",
+  ) {
+    if (theme !== "auto")
+      content = content.replace(
+        /@media\s*\(prefers-color-scheme:\s*(light|dark)\)/g,
+        (_, value: string) =>
+          value === theme ? "@media all" : "@media not all",
+      );
     return `<svg width="${Math.round((width * height) / settings.sizeUnits)}" height="${height}" viewBox="0 0 ${width} ${settings.sizeUnits}" fill="none" xmlns="http://www.w3.org/2000/svg"><title>My tech stack</title>${content}</svg>`;
   }
 
@@ -81,11 +126,13 @@ export function createSvgRenderer(
     return document(
       svgs.length * stride - gap,
       height,
-      definitions(svgs) + row(sequence, stride),
+      definitions(svgs, options) + row(sequence, stride),
+      options.theme,
     );
   }
 
   function marquee(svgs: readonly string[], options: MarqueeOptions = {}) {
+    if (options.order === "shuffle") svgs = [...new Set(svgs)];
     if (!svgs.length) throw new Error("At least one icon is required");
     const { height, gap, stride } = layout(options);
     const sequence =
@@ -116,7 +163,8 @@ export function createSvgRenderer(
     return document(
       width,
       height,
-      `${definitions(svgs)}${style}<g class="track">${rows}</g>`,
+      `${definitions(svgs, options)}${style}<g class="track">${rows}</g>`,
+      options.theme,
     );
   }
 

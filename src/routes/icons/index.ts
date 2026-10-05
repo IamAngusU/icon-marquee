@@ -4,10 +4,13 @@ import { loadIcons } from "../../utils/load";
 import { optionalWholeNumber } from "../../utils/query";
 import { renderIconRow } from "../../utils/render";
 import { svgResponse } from "../../utils/respond";
+import { visualQuery } from "../../utils/visual-query";
 
 export const iconsRoutes = new Hono();
 
 iconsRoutes.get("/", async (c) => {
+  const visual = visualQuery(c.req.query());
+  if ("error" in visual) return c.json({ error: visual.error }, 400);
   const height = optionalWholeNumber(
     "height",
     c.req.query("height"),
@@ -35,7 +38,11 @@ iconsRoutes.get("/", async (c) => {
 
   return svgResponse(
     c,
-    renderIconRow(result.svgs, { heightPx: height.value, gapPx: gap.value }),
+    renderIconRow(result.svgs, {
+      ...visual.value,
+      heightPx: height.value,
+      gapPx: gap.value,
+    }),
     result.unknown,
   );
 });

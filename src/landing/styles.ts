@@ -1,4 +1,10 @@
 export const styles = `
+.advanced { margin: 20px 0; padding-top: 16px; border-top: 1px solid #dbe2ee; }
+.advanced summary { cursor: pointer; font-weight: 600; font-size: 13px; }
+.advanced .input-label { margin-top: 16px; }
+.checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 16px 0; }
+.yaml-panel { margin-top: 14px; }
+.yaml-panel textarea { box-sizing: border-box; width: 100%; margin-top: 12px; padding: 12px; border: 1px solid #dbe2ee; border-radius: 8px; background: #f0f3fa; font: 11px/1.7 ui-monospace, monospace; color: #1b2845; resize: vertical; }
 :root {
   color-scheme: light;
   --canvas: #eef2f8;

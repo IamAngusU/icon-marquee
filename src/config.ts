@@ -204,6 +204,15 @@ export const config = {
     maxSeed: 4294967295,
   },
   landing: {
+    effectDefaults: {
+      effect: "none",
+      intensity: 35,
+      effectDuration: 5,
+      pauseStyle: "instant",
+      pauseDuration: 450,
+      bezier: [0.42, 0, 0.58, 1],
+      hoverPause: false,
+    },
     maxLogoBytes: 2097152,
     maxLogoCount: 20,
     logoRasterPx: 256,

@@ -1,4 +1,5 @@
 import { config } from "../config";
+import { createMotionTools } from "./motion";
 import { scopeIds } from "./scope-ids";
 import { createSvgRenderer } from "./svg";
 
@@ -12,7 +13,11 @@ export const rendererSettings = {
   defaultSeed: config.marquee.defaultSeed,
 };
 
-const renderer = createSvgRenderer(rendererSettings, scopeIds);
+const renderer = createSvgRenderer(
+  rendererSettings,
+  scopeIds,
+  createMotionTools(),
+);
 
 export const renderIconRow = renderer.icons;
 export const renderIconMarquee = renderer.marquee;

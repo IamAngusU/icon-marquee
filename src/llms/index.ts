@@ -27,7 +27,7 @@ Query parameters:
 - \`gap\` (optional): space between icons in px, a whole number from ${icons.minGapPx} to ${icons.maxGapPx}. If omitted, spacing scales with icon height (44/256 of the height).
 - \`speed\` (optional): a whole number from ${marquee.minSpeedPxPerS} to ${marquee.maxSpeedPxPerS} px/s. Default ${marquee.speedPxPerS}.
 - \`direction\` (optional): \`left\` (default) or \`right\`.
-- \`order\` (optional): \`repeat\` (default) or \`shuffle\`. Shuffle exports contain ${marquee.shufflePasses} mixed rounds before looping; SVG images cannot run fresh JavaScript randomness.
+- \`order\` (optional): \`repeat\` (default) or \`shuffle\`. Shuffle deduplicates identical sources and excludes recently used icons. Exports contain ${marquee.shufflePasses} × unique icon count picks before looping; SVG images cannot run fresh JavaScript randomness.
 - \`seed\` (optional): a whole number from 0 to ${marquee.maxSeed}; default ${marquee.defaultSeed}. Reproduces the same shuffled export.
 
 ### GET /v1/icons
@@ -51,7 +51,11 @@ JSON containing aligned \`names\` and original \`svgs\` arrays, plus \`unknown\`
 
 ## Theme
 
-Icons with light and dark versions follow the viewer's \`prefers-color-scheme\`. There is no theme parameter.
+Icons with light and dark versions follow the embedding page's color scheme by default. Both SVG endpoints accept \`theme=auto|light|dark\` (default auto) for an explicit override.
+
+## Effects
+
+Both SVG endpoints accept \`effect=none|glint|chrome\`, \`intensity=0..100\`, and \`effectDuration=1..20\` seconds. Defaults are none, 35 and 5. Effects are script-free. Hover-to-pause and eased pause/resume are interactive generator features, not README-image interactions.
 
 ## Repository use and custom logos
 

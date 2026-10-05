@@ -1,18 +1,29 @@
 import { describe, expect, test } from "bun:test";
+import { createMotionTools } from "./motion";
 import { rendererSettings } from "./render";
 import { scopeIds } from "./scope-ids";
 import { createSvgRenderer } from "./svg";
 
-const renderer = createSvgRenderer(rendererSettings, scopeIds);
+const renderer = createSvgRenderer(
+  rendererSettings,
+  scopeIds,
+  createMotionTools(),
+);
 
 describe("shuffle renderer", () => {
-  test("uses every icon once per round without adjacent duplicates", () => {
+  test("keeps recent icons apart with a balanced distribution", () => {
     const sequence = renderer.shuffled(6, 1234);
     expect(sequence).toHaveLength(6 * rendererSettings.shufflePasses);
-    for (let i = 0; i < sequence.length; i += 6)
-      expect([...sequence.slice(i, i + 6)].sort()).toEqual([0, 1, 2, 3, 4, 5]);
-    for (let i = 1; i < sequence.length; i++)
-      expect(sequence[i]).not.toBe(sequence[i - 1]);
+    for (let i = 0; i < sequence.length; i++)
+      for (let distance = 1; distance <= 3; distance++)
+        expect(sequence[i]).not.toBe(
+          sequence[(i - distance + sequence.length) % sequence.length],
+        );
+    const totals = Array.from(
+      { length: 6 },
+      (_, icon) => sequence.filter((value) => value === icon).length,
+    );
+    expect(Math.max(...totals) - Math.min(...totals)).toBeLessThanOrEqual(2);
     expect(
       new Set(
         Array.from({ length: 16 }, (_, i) =>
@@ -31,14 +42,21 @@ describe("shuffle renderer", () => {
   test("exports a script-free loop with reusable, unique definitions", () => {
     const asset =
       '<svg width="256" height="256"><path id="mark" d="M0 0h256v256z"/></svg>';
-    const svg = renderer.marquee([asset, asset, asset], {
-      heightPx: 64,
-      gapPx: 16,
-      widthPx: 760,
-      speedPxPerS: 40,
-      order: "shuffle",
-      seed: 42,
-    });
+    const svg = renderer.marquee(
+      [
+        asset,
+        asset.replace('id="mark"', 'id="second"'),
+        asset.replace('id="mark"', 'id="third"'),
+      ],
+      {
+        heightPx: 64,
+        gapPx: 16,
+        widthPx: 760,
+        speedPxPerS: 40,
+        order: "shuffle",
+        seed: 42,
+      },
+    );
     expect(svg).toContain("translateX(-15360px)");
     expect(svg).toContain("scroll 96.00s linear infinite");
     expect(svg.match(/<g id="asset-/g)).toHaveLength(3);
@@ -47,5 +65,37 @@ describe("shuffle renderer", () => {
     expect(new Set(ids).size).toBe(ids.length);
     expect(svg).not.toContain("<script");
     expect(svg).not.toContain("animation-play-state");
+  });
+
+  test("shuffle deduplicates identical sources; repeat keeps deliberate duplicates", () => {
+    const asset = '<svg width="256" height="256"><title>A</title></svg>';
+    expect(
+      renderer
+        .marquee([asset, asset], { order: "shuffle" })
+        .match(/<g id="asset-/g),
+    ).toHaveLength(1);
+    expect(
+      renderer
+        .marquee([asset, asset], { order: "repeat" })
+        .match(/<g id="asset-/g),
+    ).toHaveLength(2);
+  });
+
+  test("loop seams respect the cooldown across sizes and seeds", () => {
+    for (const count of [2, 3, 4, 5, 6, 9, 20])
+      for (let seed = 0; seed < 20; seed++) {
+        const sequence = renderer.shuffled(count, seed);
+        const cooldown = Math.floor(count / 2);
+        for (let i = 0; i < sequence.length; i++)
+          for (let d = 1; d <= cooldown; d++) {
+            if (
+              sequence[i] ===
+              sequence[(i - d + sequence.length) % sequence.length]
+            )
+              throw new Error(
+                `Repeated icon: count ${count}, seed ${seed}, position ${i}`,
+              );
+          }
+      }
   });
 });

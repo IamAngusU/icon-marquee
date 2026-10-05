@@ -22,6 +22,9 @@ src/
     query.ts             Shared whole-number option validation
     render.ts            Configured server renderer
     svg.ts               Shared browser/server SVG factory and seeded shuffle
+    motion.ts            Shared cooldown picker and Bézier interpolation
+    preset.ts            Bounded flat YAML preset codec
+    visual-query.ts      API effect/theme validation
     scope-ids.ts         Icon ID/reference scoping
     respond.ts           SVG content type, caching and skipped-icon header
   routes/
@@ -68,7 +71,9 @@ A marquee period equals icon count multiplied by the stride (icon plus gap). The
 
 Each selected icon is defined once with its own ID prefix (`i<index>`) and reused via SVG `use` elements. Definitions stay unique across duplicate selections without copying source paths for every repeated row. The inherited ID scoper handles normal SVG identifiers; the upstream `8th` icon has an escaped CSS selector and keeps its default colors when combined.
 
-Shuffle uses 16 Fisher–Yates shuffled bags and a seeded 32-bit generator. Every selected slot appears once per bag; adjacent bag boundaries avoid repeating the same slot. That entire finite sequence is the exported animation period. SVG image embeds cannot execute JavaScript, so only the editor supports continuously fresh randomness. The renderer factory is self-contained and shared by browser, API and README asset generation.
+Shuffle first deduplicates identical sources. A shared picker excludes the most recent floor(unique count / 2) icons and randomly chooses among the least-used eligible icons. Export uses a seeded 32-bit generator and 16 × unique count picks, retrying boundedly to respect the same cooldown at the cyclic seam; a cyclic permutation is the bounded fallback. SVG images cannot execute JavaScript, so only the editor supports continuously fresh randomness. The renderer factory is shared by browser, API and README asset generation.
+
+Glint and Chrome use reusable SVG gradient/clip definitions and overlays, not arbitrary source CSS. Glint uses a reduced-motion-aware CSS animation. SVG media rules remain automatic by default; a validated explicit theme can force them for compatibility exports.
 
 ## Composer
 
@@ -80,7 +85,9 @@ The client function in `script.ts` is TypeScript and is serialized with `toStrin
 
 Changes immediately abort outstanding asset requests and invalidate exports, then debounce regeneration. A request generation counter also prevents stale responses from winning races. Original bundled SVGs are fetched once from `/v1/assets` and cached by name. The shared renderer generates the download locally. Invalid/empty input hides the preview and disables copy/download.
 
-The preview imports the generated SVG, disables its CSS animation, and uses a bounded queue of `use` elements with a requestAnimationFrame clock. Offscreen items are recycled in order or replenished from fresh shuffled bags. Pause cancels the clock without replacing the DOM, queue or offset; resume resets only the time baseline. Reduced motion and hidden tabs suspend the clock too. Theme switching rewrites only preview media rules and preserves position; exported images follow the viewer.
+The preview imports the generated SVG, disables its track CSS animation, and uses a bounded queue of `use` elements with a requestAnimationFrame clock. Offscreen items are recycled in order or replenished by the shared cooldown picker. The initial rightward queue is reversed so replenishment continues from the correct edge. Instant pause cancels the clock without replacing the DOM, queue or offset. Optional easing interpolates velocity with a bounded cubic Bézier and trapezoidal integration; retargeting preserves velocity and position. Hover and explicit pause are independent (manual pause takes precedence). Glint suspends via an inherited CSS variable when stopped. Reduced motion and hidden tabs suspend the clock too. Theme switching preserves track position.
+
+Advanced options stay in one collapsed panel. The self-contained preset codec accepts only the documented flat YAML subset, with a 4 KB input limit and no scripts, custom tags, aliases or arbitrary CSS. Applied effects and motion settings are serialized into editor links.
 
 Uploaded SVG/PNG/JPEG/WebP files are decoded in an isolated image context and rasterized to 256px transparent PNGs (2 MB/file, 20 per session, bounded dimensions and load timeout). Raw uploaded markup never enters the DOM. Embedded data URLs keep custom exports self-contained. Files stay in a memory map until reload, with no server upload or persistent browser storage. Editor-link and URL export are disabled when selected logos require local data.
 
@@ -101,6 +108,8 @@ Bun automatically serves the default Hono export in `src/index.ts`. `bun dev` en
 Vercel's Hono preset uses the existing `vercel.json` Bun version setting. `Bun.file` requires Bun, not the default Node runtime. Keep explicit `typeRoots` in tsconfig for Vercel's temporary configuration.
 
 Repository privacy and endpoint access are separate. There is no authentication layer. Deploy only when a public SVG endpoint is wanted, or protect a private instance at the hosting layer. GitHub's image proxy needs a reachable image URL; alternatively commit a downloaded SVG with the consuming README.
+
+The public generator is a separate static build of the same composer. `scripts/build-static.ts` writes HTML with its own hashed script CSP, the local SVG catalog, favicon and licenses to `dist/`. Relative icon paths work on subpath hosting. The browser uses those assets instead of `/v1/assets`, and hides API URL export. Sites publishes `dist/` according to `.openai/hosting.json`; its source push does not replace the GitHub origin. Keep generated output out of Git, build before publishing, and push the verified source commit to GitHub as well. No user logo data is uploaded to either service.
 
 ## Validation
 

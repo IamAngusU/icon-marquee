@@ -1,12 +1,13 @@
 import { createHash } from "node:crypto";
 import { config } from "../config";
 import { iconCount } from "../utils/registry";
-import { script } from "./script";
+import { createClientScript, script } from "./script";
 import { styles } from "./styles";
 
 export const scriptHash = `sha256-${createHash("sha256").update(script).digest("base64")}`;
 
-export const landingPage = `<!doctype html>
+export function createLandingPage(staticSite = false) {
+  return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8" />
@@ -14,7 +15,7 @@ export const landingPage = `<!doctype html>
 <title>Icon Marquee — put your stack in motion</title>
 <meta name="description" content="Compose an animated tech stack with over 1,000 icons. Set the pace, preview your design, and export an SVG or a README-ready snippet." />
 <meta name="color-scheme" content="light" />
-<link rel="icon" href="/logo.svg" type="image/svg+xml" />
+<link rel="icon" href="./logo.svg" type="image/svg+xml" />
 <link rel="alternate" type="text/plain" href="/llms.txt" title="API usage guide" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -24,7 +25,7 @@ export const landingPage = `<!doctype html>
 <body>
 <a class="skip-link" href="#composer">Skip to composer</a>
 <header class="topbar wrap">
-  <a class="brand" href="/" aria-label="Icon Marquee home"><span class="brand-mark" aria-hidden="true">≋</span>icon marquee</a>
+  <a class="brand" href="./" aria-label="Icon Marquee home"><span class="brand-mark" aria-hidden="true">≋</span>icon marquee</a>
   <nav aria-label="Main navigation"><a href="#library">Icon library <span class="nav-count">${iconCount}</span></a><a href="#reference">API guide</a><a href="${config.landing.repoUrl}">GitHub ↗</a></nav>
 </header>
 <main class="wrap">
@@ -74,8 +75,14 @@ export const landingPage = `<!doctype html>
         <div class="control"><label for="speed">Scroll speed <output id="speed-value" for="speed">40 px/s</output></label><input id="speed" type="range" min="5" max="200" step="1" value="40" /></div>
         <div class="direction-control"><span>Direction</span><div class="segmented compact" role="group" aria-label="Scroll direction"><button data-direction="left" type="button" aria-pressed="true">← Left</button><button data-direction="right" type="button" aria-pressed="false">Right →</button></div></div>
         <div class="direction-control"><span>Order</span><div class="segmented compact" role="group" aria-label="Icon order"><button data-order="repeat" type="button" aria-pressed="true">Repeat</button><button data-order="shuffle" type="button" aria-pressed="false">Shuffle</button></div></div>
-        <p id="shuffle-note" class="motion-note" hidden>Fresh picks as icons leave the screen. SVG exports use 16 shuffled rounds, then loop.</p>
-        <p class="motion-note">Respects reduced-motion preferences automatically.</p>
+        <p id="shuffle-note" class="motion-note" hidden>Fresh picks. Recent icons sit out. Duplicate logos count once.</p>
+        <details class="advanced"><summary>Effects &amp; behavior</summary>
+          <label class="input-label" for="effect">Finish</label><select class="field-input" id="effect"><option value="none">Original</option><option value="glint">Glint</option><option value="chrome">Chrome</option></select>
+          <label class="input-label" for="pause-style">Pause &amp; resume</label><select class="field-input" id="pause-style"><option value="instant">Instant</option><option value="ease">Ease in / out</option><option value="bezier">Custom Bézier</option></select>
+          <label class="checkbox-label"><input type="checkbox" id="hover-pause" /> Pause on hover</label>
+          <p class="field-help">Hover and easing work in the generator. README images keep looping.</p>
+          <details class="yaml-panel"><summary>YAML preset</summary><label class="sr-only" for="effect-yaml">Effect YAML</label><textarea id="effect-yaml" spellcheck="false" rows="8"></textarea><div class="secondary-actions"><button id="apply-preset" type="button">Apply preset</button><button id="copy-preset" type="button">Copy YAML</button></div><p class="field-help" id="preset-status" role="status">Flat YAML settings. No scripts or custom CSS.</p></details>
+        </details>
         <div class="export-panel">
           <h2>Take it with you</h2>
           <div class="export-tabs" role="group" aria-label="Embed format"><button data-format="markdown" type="button" aria-pressed="true">Markdown</button><button data-format="html" type="button" aria-pressed="false">HTML</button><button data-format="url" type="button" aria-pressed="false">URL</button></div>
@@ -99,6 +106,9 @@ export const landingPage = `<!doctype html>
 </main>
 <footer class="wrap footer"><span>Icon Marquee <span class="footer-dot">/</span> Made for your next README.</span><span>Based on <a href="https://github.com/gian-gg/icon-marquee">gian-gg/icon-marquee</a>. Icons by <a href="https://github.com/syvixor/skills-icons">skills-icons</a>. MIT.</span></footer>
 <noscript><p class="noscript">The interactive editor needs JavaScript. You can still generate an image directly at <a href="/v1/marquee?i=js,ts,react">/v1/marquee?i=js,ts,react</a>.</p></noscript>
-<script>${script}</script>
+<script>${staticSite ? createClientScript(true) : script}</script>
 </body>
 </html>`;
+}
+
+export const landingPage = createLandingPage();

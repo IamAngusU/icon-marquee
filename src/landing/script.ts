@@ -1,4 +1,6 @@
 import { config } from "../config";
+import { createMotionTools } from "../utils/motion";
+import { createPresetCodec, type EffectPreset } from "../utils/preset";
 import { iconNames } from "../utils/registry";
 import { rendererSettings } from "../utils/render";
 import { scopeIds } from "../utils/scope-ids";
@@ -13,6 +15,8 @@ type ComposerData = {
   maxLogoBytes: number;
   maxLogoCount: number;
   logoRasterPx: number;
+  staticSite: boolean;
+  effects: EffectPreset;
 };
 
 function composer(
@@ -20,6 +24,8 @@ function composer(
   renderer: ReturnType<typeof createSvgRenderer>,
   makePreview: typeof createLivePreview,
   readLogo: typeof readLocalLogo,
+  motion: ReturnType<typeof createMotionTools>,
+  codec: ReturnType<typeof createPresetCodec>,
 ) {
   function element<T extends HTMLElement>(id: string): T {
     const found = document.getElementById(id);
@@ -29,7 +35,12 @@ function composer(
 
   const input = element<HTMLInputElement>("icons");
   const preview = element<HTMLDivElement>("preview");
-  const livePreview = makePreview(preview);
+  const livePreview = makePreview(preview, motion);
+  let effects = data.effects;
+  const effectSelect = element<HTMLSelectElement>("effect");
+  const pauseStyle = element<HTMLSelectElement>("pause-style");
+  const hoverPause = element<HTMLInputElement>("hover-pause");
+  const yaml = element<HTMLTextAreaElement>("effect-yaml");
   const stage = element<HTMLDivElement>("stage");
   const status = element<HTMLParagraphElement>("status");
   const selected = element<HTMLUListElement>("selected");
@@ -119,6 +130,10 @@ function composer(
       .filter(Boolean);
   const canonical = (name: string) =>
     Object.hasOwn(data.aliases, name) ? (data.aliases[name] ?? name) : name;
+  const thumbnail = (name: string, height: number) =>
+    data.staticSite
+      ? `./icons/${encodeURIComponent(canonical(name))}.svg`
+      : `/v1/icons?i=${encodeURIComponent(name)}&height=${height}`;
 
   function notify(message: string, error = false) {
     status.textContent = message;
@@ -135,6 +150,11 @@ function composer(
     params.set("i", names().join(","));
     params.set("height", controls.height.value);
     params.set("gap", controls.gap.value);
+    if (effects.effect !== "none") {
+      params.set("effect", effects.effect);
+      params.set("intensity", String(effects.intensity));
+      params.set("effectDuration", String(effects.effectDuration));
+    }
     if (mode === "marquee") {
       params.set("width", controls.width.value);
       params.set("speed", controls.speed.value);
@@ -156,11 +176,25 @@ function composer(
     state.set("surface", surface);
     state.set("order", order);
     state.set("seed", String(seed));
+    state.set("fx", codec.stringify(effects));
     history.replaceState(null, "", `#${state.toString()}`);
   }
 
   function restoreState() {
     const state = new URLSearchParams(location.hash.slice(1));
+    const preset = state.get("fx");
+    if (preset) {
+      try {
+        effects = codec.parse(preset);
+      } catch {
+        effects = data.effects;
+      }
+    }
+    effectSelect.value = effects.effect;
+    pauseStyle.value = effects.pauseStyle;
+    hoverPause.checked = effects.hoverPause;
+    yaml.value = codec.stringify(effects);
+    livePreview.setMotion(effects);
     if (state.has("i")) input.value = state.get("i") ?? "";
     mode = state.get("mode") === "icons" ? "icons" : "marquee";
     direction = state.get("direction") === "right" ? "right" : "left";
@@ -272,6 +306,9 @@ function composer(
       direction,
       order,
       seed,
+      effect: effects.effect,
+      intensity: effects.intensity,
+      effectDuration: effects.effectDuration,
     };
   }
 
@@ -311,9 +348,7 @@ function composer(
       );
       if (nameSet.has(canonical(name)) || customLogos.has(name)) {
         const img = document.createElement("img");
-        img.src =
-          customLogos.get(name)?.dataUrl ??
-          `/v1/icons?i=${encodeURIComponent(name)}&height=24`;
+        img.src = customLogos.get(name)?.dataUrl ?? thumbnail(name, 24);
         img.alt = "";
         li.append(img);
       }
@@ -396,9 +431,7 @@ function composer(
         (chosen.has(name) ? "Remove " : "Add ") + name,
       );
       const img = document.createElement("img");
-      img.src =
-        customLogos.get(name)?.dataUrl ??
-        `/v1/icons?i=${encodeURIComponent(name)}&height=40`;
+      img.src = customLogos.get(name)?.dataUrl ?? thumbnail(name, 40);
       img.alt = "";
       img.loading = "lazy";
       img.width = 35;
@@ -485,23 +518,37 @@ function composer(
         ),
       ];
       if (missing.length) {
-        const res = await fetch(
-          `/v1/assets?i=${missing.map(encodeURIComponent).join(",")}`,
-          { signal: request.signal },
-        );
-        if (!res.ok)
-          throw new Error(
-            "Could not load your icons. Check your connection and try again.",
+        if (data.staticSite) {
+          await Promise.all(
+            missing.map(async (name) => {
+              const response = await fetch(thumbnail(name, 256), {
+                signal: request?.signal,
+              });
+              if (!response.ok)
+                throw new Error(`Could not load ${name}. Try again.`);
+              const asset = await response.text();
+              if (id === requestId) assetCache.set(name, asset);
+            }),
           );
-        const assets = (await res.json()) as {
-          names: string[];
-          svgs: string[];
-        };
-        if (id !== requestId) return;
-        assets.names.forEach((name, i) => {
-          const asset = assets.svgs[i];
-          if (asset) assetCache.set(name, asset);
-        });
+        } else {
+          const res = await fetch(
+            `/v1/assets?i=${missing.map(encodeURIComponent).join(",")}`,
+            { signal: request.signal },
+          );
+          if (!res.ok)
+            throw new Error(
+              "Could not load your icons. Check your connection and try again.",
+            );
+          const assets = (await res.json()) as {
+            names: string[];
+            svgs: string[];
+          };
+          if (id !== requestId) return;
+          assets.names.forEach((name, i) => {
+            const asset = assets.svgs[i];
+            if (asset) assetCache.set(name, asset);
+          });
+        }
       }
       if (id !== requestId) return;
       currentSvgs = known.map(
@@ -510,6 +557,8 @@ function composer(
       );
       if (currentSvgs.some((asset) => !asset))
         throw new Error("Some icons could not be loaded. Please try again.");
+      if (mode === "marquee" && order === "shuffle")
+        currentSvgs = [...new Set(currentSvgs)];
       svg =
         mode === "marquee"
           ? renderer.marquee(currentSvgs, renderOptions())
@@ -517,7 +566,10 @@ function composer(
       hasLocal = known.some((name) => customLogos.has(name));
       share.disabled = hasLocal;
       formatButtons.forEach((button) => {
-        button.disabled = hasLocal && button.dataset.format === "url";
+        button.disabled =
+          (hasLocal || data.staticSite) && button.dataset.format === "url";
+        if (data.staticSite && button.dataset.format === "url")
+          button.hidden = true;
       });
       if (hasLocal && format === "url") {
         format = "markdown";
@@ -528,12 +580,13 @@ function composer(
           );
         });
       }
-      exportUrl = hasLocal
-        ? `./icon-${mode === "marquee" ? "marquee" : "row"}.svg`
-        : location.origin + path;
+      exportUrl =
+        hasLocal || data.staticSite
+          ? `./icon-${mode === "marquee" ? "marquee" : "row"}.svg`
+          : location.origin + path;
       element("export-note").textContent = hasLocal
         ? "Download the SVG beside your README. Your logos stay in this browser until reloaded; editor links cannot include them."
-        : "Download the SVG beside your README, then paste the snippet. The URL tab needs a publicly reachable instance.";
+        : "Download the SVG beside your README, then paste the snippet. One file adapts to light and dark.";
       renderPreview();
       renderSnippet();
       setExportEnabled(true);
@@ -717,6 +770,49 @@ function composer(
     renderControls();
     livePreview.setPaused(paused);
   });
+  effectSelect.addEventListener("change", () => {
+    effects.effect = effectSelect.value as EffectPreset["effect"];
+    yaml.value = codec.stringify(effects);
+    changed();
+  });
+  pauseStyle.addEventListener("change", () => {
+    effects.pauseStyle = pauseStyle.value as EffectPreset["pauseStyle"];
+    if (effects.pauseStyle === "bezier")
+      yaml.closest("details")?.setAttribute("open", "");
+    livePreview.setMotion(effects);
+    yaml.value = codec.stringify(effects);
+    saveState();
+  });
+  hoverPause.addEventListener("change", () => {
+    effects.hoverPause = hoverPause.checked;
+    livePreview.setMotion(effects);
+    yaml.value = codec.stringify(effects);
+    saveState();
+  });
+  element("apply-preset").addEventListener("click", () => {
+    try {
+      const next = codec.parse(yaml.value);
+      const appearanceChanged =
+        next.effect !== effects.effect ||
+        next.intensity !== effects.intensity ||
+        next.effectDuration !== effects.effectDuration;
+      effects = next;
+      effectSelect.value = effects.effect;
+      pauseStyle.value = effects.pauseStyle;
+      hoverPause.checked = effects.hoverPause;
+      livePreview.setMotion(effects);
+      saveState();
+      if (appearanceChanged) changed();
+      element("preset-status").textContent = "Preset applied.";
+    } catch (error) {
+      element("preset-status").textContent =
+        error instanceof Error ? error.message : "Check your preset.";
+    }
+  });
+  element("copy-preset").addEventListener(
+    "click",
+    () => void copyText(codec.stringify(effects), "YAML preset copied."),
+  );
   copy.addEventListener("click", () => {
     if (exportUrl) void copyText(snippet.value, "Copied. Ready to paste.");
   });
@@ -771,11 +867,19 @@ function composer(
   changed();
 }
 
-export const script = `(${composer.toString()})(${JSON.stringify({
-  names: iconNames,
-  aliases: config.icons.aliases,
-  maxIcons: config.icons.maxPerRequest,
-  maxLogoBytes: config.landing.maxLogoBytes,
-  maxLogoCount: config.landing.maxLogoCount,
-  logoRasterPx: config.landing.logoRasterPx,
-})}, (${createSvgRenderer.toString()})(${JSON.stringify(rendererSettings)}, ${scopeIds.toString()}), ${createLivePreview.toString()}, ${readLocalLogo.toString()});`;
+export function createClientScript(staticSite = false) {
+  const motion = `(${createMotionTools.toString()})()`;
+  const defaults = JSON.stringify(config.landing.effectDefaults);
+  return `(${composer.toString()})(${JSON.stringify({
+    names: iconNames,
+    aliases: config.icons.aliases,
+    maxIcons: config.icons.maxPerRequest,
+    maxLogoBytes: config.landing.maxLogoBytes,
+    maxLogoCount: config.landing.maxLogoCount,
+    logoRasterPx: config.landing.logoRasterPx,
+    staticSite,
+    effects: config.landing.effectDefaults,
+  })}, (${createSvgRenderer.toString()})(${JSON.stringify(rendererSettings)}, ${scopeIds.toString()}, ${motion}), ${createLivePreview.toString()}, ${readLocalLogo.toString()}, ${motion}, (${createPresetCodec.toString()})(${defaults}));`;
+}
+
+export const script = createClientScript();

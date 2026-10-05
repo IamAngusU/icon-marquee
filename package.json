@@ -23,7 +23,8 @@
     "format": "biome format --write .",
     "check": "biome check --write .",
     "test": "bun test",
-    "readme:assets": "bun scripts/generate-readme.ts"
+    "readme:assets": "bun scripts/generate-readme.ts",
+    "build:static": "bun scripts/build-static.ts"
   },
   "license": "MIT"
 }

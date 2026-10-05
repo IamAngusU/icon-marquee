@@ -4,10 +4,13 @@ import { loadIcons } from "../../utils/load";
 import { optionalWholeNumber } from "../../utils/query";
 import { renderIconMarquee } from "../../utils/render";
 import { svgResponse } from "../../utils/respond";
+import { visualQuery } from "../../utils/visual-query";
 
 export const marqueeRoutes = new Hono();
 
 marqueeRoutes.get("/", async (c) => {
+  const visual = visualQuery(c.req.query());
+  if ("error" in visual) return c.json({ error: visual.error }, 400);
   const order = c.req.query("order");
   if (order !== undefined && order !== "repeat" && order !== "shuffle") {
     return c.json(
@@ -75,6 +78,7 @@ marqueeRoutes.get("/", async (c) => {
   return svgResponse(
     c,
     renderIconMarquee(result.svgs, {
+      ...visual.value,
       widthPx:
         "value" in numberParams.widthPx
           ? numberParams.widthPx.value
