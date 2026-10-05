@@ -4,7 +4,7 @@ Static logo walls all look the same. Give your stack a little motion.
 
 Pick from 1,041 icons, add your own logos, and export one animated SVG. No install. No account.
 
-[![Open generator](docs/assets/generator.svg)](https://angusu.de/icon-marquee/)
+[![Open generator](docs/assets/generator.svg?v=2)](https://angusu.de/icon-marquee/)
 
 ![A real Icon Marquee export with a broad mix of icons](docs/assets/icon-marquee.svg)
 
