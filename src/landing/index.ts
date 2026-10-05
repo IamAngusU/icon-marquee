@@ -25,7 +25,7 @@ export function createLandingPage(staticSite = false) {
 <body>
 <a class="skip-link" href="#composer">Skip to composer</a>
 <header class="topbar wrap">
-  <a class="brand" href="./" aria-label="Icon Marquee home"><span class="brand-mark" aria-hidden="true">≋</span>icon marquee</a>
+  <a class="brand" href="./" aria-label="Icon Marquee home"><span class="brand-mark" aria-hidden="true"><svg class="brand-heart" viewBox="-0.5 -1 6 6" shape-rendering="crispEdges"><rect x="1" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="0" y="1" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="3" y="2" width="1" height="1"/><rect x="2" y="3" width="1" height="1"/></svg></span>icon marquee</a>
   <nav aria-label="Main navigation"><a href="#library">Icon library <span class="nav-count">${iconCount}</span></a><a href="#reference">API guide</a><a href="${config.landing.repoUrl}">GitHub ↗</a></nav>
 </header>
 <main class="wrap">

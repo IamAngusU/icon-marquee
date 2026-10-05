@@ -53,7 +53,7 @@ The startup registry indexes only actual filenames. User input resolves through 
 | Path | Result |
 | --- | --- |
 | `/` | Composer |
-| `/logo.svg` | Favicon |
+| `/logo.svg` | Adaptive pixel-heart favicon |
 | `/llms.txt` | Origin-aware API guide |
 | `/v1` | Health JSON |
 | `/v1/catalog` | Canonical names and aliases |

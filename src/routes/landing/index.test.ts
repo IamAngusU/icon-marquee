@@ -14,6 +14,8 @@ describe("GET /", () => {
     expect(body).toContain("--range-progress");
     expect(body).toContain("--tooltip-tip");
     expect(body).toContain("elementFromPoint");
+    expect(body).toContain('class="brand-heart"');
+    expect(body).not.toContain(">≋<");
   });
 
   test("allows only the inline script whose hash is in the CSP", async () => {

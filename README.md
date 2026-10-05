@@ -1,5 +1,7 @@
 # Icon Marquee
 
+<img src="docs/assets/icon-marquee-lockup.svg" alt="Icon Marquee — a pixel heart in motion" width="360" />
+
 Static logo walls all look the same. Give your stack a little motion.
 
 Pick from 1,041 icons, add your own logos, and export one animated SVG. No install. No account.
