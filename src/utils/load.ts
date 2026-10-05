@@ -18,7 +18,7 @@ function readIcon(path: string): Promise<string> {
 }
 
 export type LoadIconsResult =
-  | { svgs: string[]; unknown: string[] }
+  | { svgs: string[]; names: string[]; unknown: string[] }
   | { error: string };
 
 export async function loadIcons(
@@ -43,5 +43,9 @@ export async function loadIcons(
   }
 
   const svgs = await Promise.all(paths.map(readIcon));
-  return { svgs, unknown };
+  return {
+    svgs,
+    names: names.filter((name) => resolveIconPath(name)),
+    unknown,
+  };
 }

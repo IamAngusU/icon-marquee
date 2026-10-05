@@ -199,8 +199,14 @@ export const config = {
     speedPxPerS: 30,
     minSpeedPxPerS: 5,
     maxSpeedPxPerS: 200,
+    shufflePasses: 16,
+    defaultSeed: 1,
+    maxSeed: 4294967295,
   },
   landing: {
+    maxLogoBytes: 2097152,
+    maxLogoCount: 20,
+    logoRasterPx: 256,
     repoUrl: "https://github.com/IamAngusU/icon-marquee",
     authorUrl: "https://github.com/IamAngusU",
     heroIcons:

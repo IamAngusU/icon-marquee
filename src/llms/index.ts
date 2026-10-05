@@ -27,6 +27,8 @@ Query parameters:
 - \`gap\` (optional): space between icons in px, a whole number from ${icons.minGapPx} to ${icons.maxGapPx}. If omitted, spacing scales with icon height (44/256 of the height).
 - \`speed\` (optional): a whole number from ${marquee.minSpeedPxPerS} to ${marquee.maxSpeedPxPerS} px/s. Default ${marquee.speedPxPerS}.
 - \`direction\` (optional): \`left\` (default) or \`right\`.
+- \`order\` (optional): \`repeat\` (default) or \`shuffle\`. Shuffle exports contain ${marquee.shufflePasses} mixed rounds before looping; SVG images cannot run fresh JavaScript randomness.
+- \`seed\` (optional): a whole number from 0 to ${marquee.maxSeed}; default ${marquee.defaultSeed}. Reproduces the same shuffled export.
 
 ### GET /v1/icons
 Static SVG with the icons in one row, left to right in request order. ${icons.heightPx}px tall.
@@ -38,6 +40,9 @@ Query parameters:
 ### GET /v1/catalog
 JSON object containing \`names\` (every canonical icon name) and \`aliases\` (short name to canonical name).
 
+### GET /v1/assets?i=...
+JSON containing aligned \`names\` and original \`svgs\` arrays, plus \`unknown\` names. Uses the same name validation and 100-icon limit. Used by the browser composer; only bundled icons are served.
+
 ## Responses
 
 - 200 \`image/svg+xml\`, cached for ${icons.cacheMaxAgeS} seconds.
@@ -47,6 +52,12 @@ JSON object containing \`names\` (every canonical icon name) and \`aliases\` (sh
 ## Theme
 
 Icons with light and dark versions follow the viewer's \`prefers-color-scheme\`. There is no theme parameter.
+
+## Repository use and custom logos
+
+Download an SVG and commit it beside the README: \`![My stack](./icon-marquee.svg)\`. No hosted API is needed for that file. URL embeds need a publicly reachable server.
+
+The composer accepts local SVG, PNG, JPEG and WebP logos up to 2 MB each (20 per session). These are rasterized locally to embedded 256px PNGs; no files are uploaded. Download before reloading. Custom logos cannot be included in API or editor links.
 
 ## Examples
 

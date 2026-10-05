@@ -8,6 +8,20 @@ import { svgResponse } from "../../utils/respond";
 export const marqueeRoutes = new Hono();
 
 marqueeRoutes.get("/", async (c) => {
+  const order = c.req.query("order");
+  if (order !== undefined && order !== "repeat" && order !== "shuffle") {
+    return c.json(
+      { error: "Query param 'order' must be 'repeat' or 'shuffle'" },
+      400,
+    );
+  }
+  const seed = optionalWholeNumber(
+    "seed",
+    c.req.query("seed"),
+    0,
+    config.marquee.maxSeed,
+  );
+  if ("error" in seed) return c.json({ error: seed.error }, 400);
   const numberParams = {
     widthPx: optionalWholeNumber(
       "width",
@@ -76,6 +90,8 @@ marqueeRoutes.get("/", async (c) => {
           ? numberParams.speedPxPerS.value
           : undefined,
       direction,
+      order,
+      seed: seed.value,
     }),
     result.unknown,
   );

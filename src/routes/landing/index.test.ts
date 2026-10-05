@@ -9,7 +9,7 @@ describe("GET /", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toContain("text/html");
-    expect(body).toContain('src="/v1/marquee?i=');
+    expect(body).toContain('id="preview" role="img"');
   });
 
   test("allows only the inline script whose hash is in the CSP", async () => {

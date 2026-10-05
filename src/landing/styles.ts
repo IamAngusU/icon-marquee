@@ -50,8 +50,8 @@ h1 { font-size: clamp(44px, 5.1vw, 68px); font-weight: 500; letter-spacing: -3.8
 .preview-pause:hover { background: #ffffff12; }
 .preview-stage { min-height: 148px; padding: 28px; display: flex; align-items: center; justify-content: center; overflow: hidden; color-scheme: dark; transition: background .2s; }
 .preview-stage[data-surface="light"] { background: #f8fafc; color: var(--ink); color-scheme: light; }
-.preview-stage img { display: block; max-width: 100%; height: auto; flex: 0 1 auto; min-width: 0; }
-.preview-stage img[hidden] { display: none; }
+#preview { max-width: 100%; min-width: 0; line-height: 0; }
+#preview > svg { display: block; max-width: 100%; height: auto; overflow: hidden; }
 .empty-preview { color: inherit; font-size: 14px; }
 .preview-footer { font-size: 11px; color: #a9b8d2; padding-block: 15px 20px; }
 .workspace { display: grid; grid-template-columns: minmax(0, 1fr) 350px; }
@@ -80,6 +80,10 @@ h2 { font-weight: 600; font-size: 17px; letter-spacing: -.4px; }
 .presets button:hover { background: #eef3ff; border-color: #bdcdfa; }
 .library { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 26px; }
 #results-count { font-size: 11px; color: var(--muted); }
+.results-count { margin: -4px 0 12px; }
+.upload-button { border: 1px solid #b9caf8; border-radius: 6px; background: #f0f4ff; color: #3158b1; padding: 7px 10px; font-size: 12px; white-space: nowrap; }
+.upload-button:hover { background: #e3ebff; }
+#logo-status:empty { display: none; }
 .search-field { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); background: #f9fbff; border-radius: 8px; padding: 9px 12px; margin: 16px 0; color: var(--muted); }
 .search-field > span { font-size: 22px; line-height: 1; }
 .search-field input { width: 100%; min-width: 0; border: 0; background: transparent; font-size: 12px; color: var(--ink); }

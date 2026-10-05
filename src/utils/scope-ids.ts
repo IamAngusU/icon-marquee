@@ -1,8 +1,7 @@
-const ID_ATTR = /(\s)id="([^"]*)"/g;
-const ID_REF = /#([A-Za-z_][\w-]*)/g;
-
 // Prefixes an icon's ids and every reference to them so icons can share one document.
 export function scopeIds(svg: string, prefix: string): string {
+  const ID_ATTR = /(\s)id="([^"]*)"/g;
+  const ID_REF = /#([A-Za-z_][\w-]*)/g;
   const ids = new Set(Array.from(svg.matchAll(ID_ATTR), (match) => match[2]));
   if (ids.size === 0) {
     return svg;

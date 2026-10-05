@@ -22,7 +22,8 @@
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check --write .",
-    "test": "bun test"
+    "test": "bun test",
+    "readme:assets": "bun scripts/generate-readme.ts"
   },
   "license": "MIT"
 }

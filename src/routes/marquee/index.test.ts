@@ -11,7 +11,7 @@ describe("GET /marquee", () => {
     expect(body).toContain("@keyframes scroll");
     expect(body).toContain("translateX(-1200px)");
     expect(body).toContain("prefers-reduced-motion");
-    expect(body.match(/<g transform=/g)).toHaveLength(8);
+    expect(body.match(/<use href="#asset-/g)).toHaveLength(8);
   });
 
   test("caps the visible window at 400px", async () => {
@@ -43,7 +43,7 @@ describe("GET /marquee", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers.get("X-Unknown-Icons")).toBe("nope");
-    expect((await res.text()).match(/<g transform=/g)).toHaveLength(4);
+    expect((await res.text()).match(/<use href="#asset-/g)).toHaveLength(4);
   });
 
   test("rejects a request where no icon is known", async () => {
@@ -66,7 +66,7 @@ describe("GET /marquee", () => {
     const body = await res.text();
 
     expect(body.startsWith('<svg width="600" height="48"')).toBe(true);
-    expect(body.match(/<g transform=/g)).toHaveLength(14);
+    expect(body.match(/<use href="#asset-/g)).toHaveLength(14);
   });
 
   test("rejects a width that is not a whole number in range", async () => {
@@ -86,7 +86,7 @@ describe("GET /marquee", () => {
     expect(body).toStartWith('<svg width="720" height="64"');
     expect(body).toContain("from{transform:translateX(-640px)}");
     expect(body).toContain("scroll 2.00s linear infinite");
-    expect(body.match(/<g transform=/g)).toHaveLength(12);
+    expect(body.match(/<use href="#asset-/g)).toHaveLength(12);
   });
 
   test("every repeated icon has unique IDs with matching references", async () => {
@@ -95,8 +95,9 @@ describe("GET /marquee", () => {
     ).text();
     const ids = [...body.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
     expect(new Set(ids).size).toBe(ids.length);
-    expect(body).toContain('id="c1-i0-github"');
-    expect(body).toContain("#c1-i0-github");
+    expect(body).toContain('id="i0-github"');
+    expect(body).toContain("#i0-github");
+    expect(body.match(/<g id="asset-/g)).toHaveLength(2);
   });
 
   test("invalid controls are rejected before rendering", async () => {
@@ -111,6 +112,10 @@ describe("GET /marquee", () => {
       "speed=201",
       "speed=NaN",
       "direction=up",
+      "order=chaos",
+      "seed=-1",
+      "seed=4294967296",
+      "seed=abc",
       "width=1e3",
       "width=%20",
     ]) {

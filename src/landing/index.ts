@@ -37,7 +37,7 @@ export const landingPage = `<!doctype html>
     <div class="preview-panel">
       <div class="preview-toolbar"><div class="live-label"><span aria-hidden="true"></span>Live preview</div><div class="preview-actions" role="group" aria-label="Preview background"><button class="swatch light" data-surface="light" aria-label="Light preview" aria-pressed="false"></button><button class="swatch dark" data-surface="dark" aria-label="Dark preview" aria-pressed="true"></button><button id="pause" class="preview-pause" type="button" aria-pressed="false">Pause</button></div></div>
       <div id="stage" class="preview-stage" data-surface="dark">
-        <img id="preview" src="/v1/marquee?i=${config.landing.playgroundIcons}&amp;width=760&amp;height=64&amp;gap=16&amp;speed=40" alt="Animated preview of your selected tech icons" width="760" height="64" />
+        <div id="preview" role="img" aria-label="Live preview of your selected icons"></div>
         <div class="empty-preview" id="empty-preview" hidden>Add a few icons to get things moving.</div>
       </div>
       <div class="preview-footer"><span id="preview-info">SVG. Sharp at every size.</span><span>Automatic light &amp; dark icons</span></div>
@@ -53,8 +53,12 @@ export const landingPage = `<!doctype html>
         <p class="field-help" id="names-help">Comma-separated. Short names like js, ts, react and py work too.</p>
         <div class="presets" role="group" aria-label="Stack presets"><span>Start with</span><button data-preset="frontend" type="button">Frontend</button><button data-preset="backend" type="button">Backend</button><button data-preset="creative" type="button">Creative</button><button data-preset="ai" type="button">AI tools</button></div>
         <section id="library" class="library" aria-labelledby="library-heading">
-          <div class="section-heading"><h2 id="library-heading">Find your icons</h2><span id="results-count">${iconCount} icons</span></div>
+          <div class="section-heading"><h2 id="library-heading">Find your icons</h2><button id="add-logos" class="upload-button" type="button">＋ Your logos</button></div>
+          <input id="logo-files" type="file" accept=".svg,.png,.jpg,.jpeg,.webp" multiple hidden />
+          <p class="field-help">SVG, PNG, JPG or WebP. Up to 2 MB each. Files stay in your browser.</p>
+          <p id="logo-status" class="field-help" role="status"></p>
           <label class="search-field"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search ${iconCount} icons…" aria-label="Search icons by name or alias" autocomplete="off" /><kbd>/</kbd></label>
+          <p id="results-count" class="results-count">${iconCount} icons</p>
           <div id="catalog" class="catalog" aria-label="Available icons"></div>
           <p id="catalog-empty" class="field-help" hidden>No icons match. Try another name or a short name like “py”.</p>
           <button id="show-more" type="button" class="show-more">Show more icons</button>
@@ -69,6 +73,8 @@ export const landingPage = `<!doctype html>
         <div class="control"><label for="gap">Spacing <output id="gap-value" for="gap">16 px</output></label><input id="gap" type="range" min="0" max="96" step="1" value="16" /></div>
         <div class="control"><label for="speed">Scroll speed <output id="speed-value" for="speed">40 px/s</output></label><input id="speed" type="range" min="5" max="200" step="1" value="40" /></div>
         <div class="direction-control"><span>Direction</span><div class="segmented compact" role="group" aria-label="Scroll direction"><button data-direction="left" type="button" aria-pressed="true">← Left</button><button data-direction="right" type="button" aria-pressed="false">Right →</button></div></div>
+        <div class="direction-control"><span>Order</span><div class="segmented compact" role="group" aria-label="Icon order"><button data-order="repeat" type="button" aria-pressed="true">Repeat</button><button data-order="shuffle" type="button" aria-pressed="false">Shuffle</button></div></div>
+        <p id="shuffle-note" class="motion-note" hidden>Fresh picks as icons leave the screen. SVG exports use 16 shuffled rounds, then loop.</p>
         <p class="motion-note">Respects reduced-motion preferences automatically.</p>
         <div class="export-panel">
           <h2>Take it with you</h2>
@@ -77,7 +83,7 @@ export const landingPage = `<!doctype html>
           <button id="copy" class="primary-button" type="button">Copy Markdown <span aria-hidden="true">⧉</span></button>
           <div class="secondary-actions"><button id="download" type="button">Download SVG ↓</button><button id="share" type="button">Copy editor link ↗</button></div>
           <p id="status" class="status" role="status" aria-live="polite"></p>
-          <p class="export-note">Downloads work anywhere. Live embeds need your own running instance.</p>
+          <p id="export-note" class="export-note">Download to use in any repo. Live URL embeds need a publicly reachable instance.</p>
         </div>
       </aside>
     </div>

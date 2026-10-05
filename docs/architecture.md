@@ -12,17 +12,21 @@ src/
     index.ts             HTML and SHA-256 hash of the client script
     styles.ts            Responsive composer styles
     script.ts            Typed, self-contained client function serialized for the browser
+    preview.ts           Bounded live queue and position-preserving animation clock
+    logos.ts             Local image decoding and rasterization
     logo.ts              Existing SVG favicon
   llms/index.ts          API reference generated from config and registry
   utils/
     registry.ts          Startup icon index
     load.ts              Name validation and cached SVG reads
     query.ts             Shared whole-number option validation
-    render.ts            SVG geometry, row repetition and animation
+    render.ts            Configured server renderer
+    svg.ts               Shared browser/server SVG factory and seeded shuffle
     scope-ids.ts         Icon ID/reference scoping
     respond.ts           SVG content type, caching and skipped-icon header
   routes/
     catalog/             JSON icon catalog
+    assets/              Validated source SVGs for the browser renderer
     icons/               Static SVG endpoint
     marquee/             Animated SVG endpoint
     landing/             Page and favicon
@@ -48,10 +52,11 @@ The startup registry indexes only actual filenames. User input resolves through 
 | `/llms.txt` | Origin-aware API guide |
 | `/v1` | Health JSON |
 | `/v1/catalog` | Canonical names and aliases |
+| `/v1/assets?i=...` | Aligned names/SVGs and unknown names |
 | `/v1/icons?i=...` | Static SVG |
 | `/v1/marquee?i=...` | Animated SVG |
 
-Both SVG endpoints accept `height` and `gap`. Marquee additionally accepts `width`, `speed` and `direction`. All numeric options accept decimal digits only and validate their bounds against config. Defaults retain upstream geometry: 48px icons, 44 viewBox units between icons, a maximum default 400px window, leftward motion at 30px/s.
+Both SVG endpoints accept `height` and `gap`. Marquee additionally accepts `width`, `speed`, `direction`, `order` and `seed`. All numeric options accept decimal digits only and validate their bounds against config. Defaults retain upstream geometry: 48px icons, 44 viewBox units between icons, a maximum default 400px window, leftward motion at 30px/s.
 
 SVG responses use `image/svg+xml` and cache for one day. Skipped names are URL-encoded in `X-Unknown-Icons`. Validation failures return 400 JSON.
 
@@ -61,7 +66,9 @@ The renderer normalizes dimensions to the source icons' 256-unit viewBox. Explic
 
 A marquee period equals icon count multiplied by the stride (icon plus gap). The row is repeated `ceil(window / period) + 1` times. Animation moves by exactly one period. Duration is rendered period width divided by requested pixels per second. Rightward motion runs from negative one period to zero. A reduced-motion media query disables animation.
 
-Every icon in every repeated copy gets its own ID prefix (`c<copy>-i<index>`). Definitions and references therefore stay unique across both duplicate icons and repeated rows. The inherited ID scoper handles normal SVG identifiers; the upstream `8th` icon has an escaped CSS selector and keeps its default colors when combined.
+Each selected icon is defined once with its own ID prefix (`i<index>`) and reused via SVG `use` elements. Definitions stay unique across duplicate selections without copying source paths for every repeated row. The inherited ID scoper handles normal SVG identifiers; the upstream `8th` icon has an escaped CSS selector and keeps its default colors when combined.
+
+Shuffle uses 16 Fisher–Yates shuffled bags and a seeded 32-bit generator. Every selected slot appears once per bag; adjacent bag boundaries avoid repeating the same slot. That entire finite sequence is the exported animation period. SVG image embeds cannot execute JavaScript, so only the editor supports continuously fresh randomness. The renderer factory is self-contained and shared by browser, API and README asset generation.
 
 ## Composer
 
@@ -71,9 +78,13 @@ The left panel contains selected icons, text input, presets and a progressively 
 
 The client function in `script.ts` is TypeScript and is serialized with `toString()` after Bun transpilation. It must stay self-contained: do not close over server-only variables or imports. Serializable icon data is passed as a function argument.
 
-Changes immediately abort outstanding preview requests and invalidate exports, then debounce regeneration. A request generation counter also prevents stale responses from winning races. Successful SVG text creates a Blob URL for the preview and is reused for download, avoiding a second SVG fetch. Previous Blob URLs are revoked. Invalid/empty input hides the image and disables copy/download.
+Changes immediately abort outstanding asset requests and invalidate exports, then debounce regeneration. A request generation counter also prevents stale responses from winning races. Original bundled SVGs are fetched once from `/v1/assets` and cached by name. The shared renderer generates the download locally. Invalid/empty input hides the preview and disables copy/download.
 
-Pause affects only the preview. Preview background controls the embedded image's color scheme, while downloaded images follow the viewer. HTML snippets escape ampersands and quotes. Clipboard failures select the requested text for manual copying.
+The preview imports the generated SVG, disables its CSS animation, and uses a bounded queue of `use` elements with a requestAnimationFrame clock. Offscreen items are recycled in order or replenished from fresh shuffled bags. Pause cancels the clock without replacing the DOM, queue or offset; resume resets only the time baseline. Reduced motion and hidden tabs suspend the clock too. Theme switching rewrites only preview media rules and preserves position; exported images follow the viewer.
+
+Uploaded SVG/PNG/JPEG/WebP files are decoded in an isolated image context and rasterized to 256px transparent PNGs (2 MB/file, 20 per session, bounded dimensions and load timeout). Raw uploaded markup never enters the DOM. Embedded data URLs keep custom exports self-contained. Files stay in a memory map until reload, with no server upload or persistent browser storage. Editor-link and URL export are disabled when selected logos require local data.
+
+Markdown and HTML snippets use the downloaded SVG filename; URL export uses the API. HTML attributes are escaped. Clipboard failures select the requested text for manual copying.
 
 Configuration is stored in the URL fragment and restored on load. Internal section navigation preserves it. Copying an editor link includes the active settings; these URLs are origin-specific. No account, database, analytics or local-storage persistence is used.
 
@@ -81,7 +92,7 @@ Configuration is stored in the URL fragment and restored on load. Internal secti
 
 The page uses a startup-computed SHA-256 CSP hash to authorize its inline client script. Inline CSS and Google Fonts are allowed; images allow same-origin, data and Blob URLs. Connections are same-origin only. Objects, framing and base URL changes are blocked.
 
-Icon names from text input enter the DOM through `textContent`, never HTML insertion. The catalog is bundled local metadata. Rendering uses only server-side validated numeric/enumerated options and registry-selected SVG files.
+Icon names and uploaded filenames enter the DOM through `textContent`, never HTML insertion. The catalog is bundled local metadata. API rendering uses server-side validated options and registry-selected SVG files. The inline preview uses only those trusted bundled assets or locally rasterized pixels. Do not add arbitrary SVG markup or remote source URLs to the preview renderer.
 
 ## Runtime and deployment
 

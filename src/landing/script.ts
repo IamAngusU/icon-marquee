@@ -1,13 +1,26 @@
 import { config } from "../config";
 import { iconNames } from "../utils/registry";
+import { rendererSettings } from "../utils/render";
+import { scopeIds } from "../utils/scope-ids";
+import { createSvgRenderer } from "../utils/svg";
+import { type LocalLogo, readLocalLogo } from "./logos";
+import { createLivePreview } from "./preview";
 
 type ComposerData = {
   names: readonly string[];
   aliases: Readonly<Record<string, string>>;
   maxIcons: number;
+  maxLogoBytes: number;
+  maxLogoCount: number;
+  logoRasterPx: number;
 };
 
-function composer(data: ComposerData) {
+function composer(
+  data: ComposerData,
+  renderer: ReturnType<typeof createSvgRenderer>,
+  makePreview: typeof createLivePreview,
+  readLogo: typeof readLocalLogo,
+) {
   function element<T extends HTMLElement>(id: string): T {
     const found = document.getElementById(id);
     if (!found) throw new Error(`Missing editor element: ${id}`);
@@ -15,7 +28,8 @@ function composer(data: ComposerData) {
   }
 
   const input = element<HTMLInputElement>("icons");
-  const preview = element<HTMLImageElement>("preview");
+  const preview = element<HTMLDivElement>("preview");
+  const livePreview = makePreview(preview);
   const stage = element<HTMLDivElement>("stage");
   const status = element<HTMLParagraphElement>("status");
   const selected = element<HTMLUListElement>("selected");
@@ -39,6 +53,16 @@ function composer(data: ComposerData) {
     document.querySelectorAll<HTMLButtonElement>("[data-direction]");
   const formatButtons =
     document.querySelectorAll<HTMLButtonElement>("[data-format]");
+  const orderButtons =
+    document.querySelectorAll<HTMLButtonElement>("[data-order]");
+  const logoInput = element<HTMLInputElement>("logo-files");
+  const customLogos = new Map<string, LocalLogo>();
+  const assetCache = new Map<string, string>();
+  let logoCounter = 0;
+  let hasLocal = false;
+  let currentSvgs: string[] = [];
+  let order: "repeat" | "shuffle" = "repeat";
+  let seed = 1;
   const presets: Record<string, string> = {
     frontend: "ts,react,nextjs,tailwind,vite,figma",
     backend: "go,rust,nodejs,docker,postgres,redis",
@@ -84,7 +108,6 @@ function composer(data: ComposerData) {
   let requestId = 0;
   let request: AbortController | undefined;
   let timer: ReturnType<typeof setTimeout>;
-  let previewUrl = "";
   let svg = "";
   let exportUrl = "";
   let dragIndex = -1;
@@ -116,6 +139,10 @@ function composer(data: ComposerData) {
       params.set("width", controls.width.value);
       params.set("speed", controls.speed.value);
       params.set("direction", direction);
+      if (order === "shuffle") {
+        params.set("order", order);
+        params.set("seed", String(seed));
+      }
     }
     return params;
   }
@@ -127,6 +154,8 @@ function composer(data: ComposerData) {
     state.set("speed", controls.speed.value);
     state.set("direction", direction);
     state.set("surface", surface);
+    state.set("order", order);
+    state.set("seed", String(seed));
     history.replaceState(null, "", `#${state.toString()}`);
   }
 
@@ -136,6 +165,14 @@ function composer(data: ComposerData) {
     mode = state.get("mode") === "icons" ? "icons" : "marquee";
     direction = state.get("direction") === "right" ? "right" : "left";
     surface = state.get("surface") === "light" ? "light" : "dark";
+    order = state.get("order") === "shuffle" ? "shuffle" : "repeat";
+    const storedSeed = state.get("seed");
+    if (
+      storedSeed &&
+      /^\d+$/.test(storedSeed) &&
+      Number(storedSeed) <= 4294967295
+    )
+      seed = Number(storedSeed);
     for (const [key, control] of Object.entries(controls)) {
       const value = state.get(key);
       if (value !== null && /^\d+$/.test(value)) {
@@ -165,6 +202,12 @@ function composer(data: ComposerData) {
         );
       });
     stage.dataset.surface = surface;
+    orderButtons.forEach((button) => {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.order === order),
+      );
+    });
   }
 
   function renderControls() {
@@ -180,17 +223,22 @@ function composer(data: ComposerData) {
     pause.disabled = mode === "icons";
     pause.textContent = paused && mode === "marquee" ? "Resume" : "Pause";
     pause.setAttribute("aria-pressed", String(paused && mode === "marquee"));
+    orderButtons.forEach((button) => {
+      button.disabled = mode === "icons";
+    });
+    element("shuffle-note").hidden = order !== "shuffle" || mode === "icons";
   }
 
   function renderSnippet() {
     const labels = { markdown: "Markdown", html: "HTML", url: "URL" };
-    const htmlUrl = exportUrl
+    const snippetUrl = `./icon-${mode === "marquee" ? "marquee" : "row"}.svg`;
+    const htmlUrl = snippetUrl
       .replaceAll("&", "&amp;")
       .replaceAll('"', "&quot;");
     snippet.value = !exportUrl
       ? ""
       : format === "markdown"
-        ? `![My tech stack](${exportUrl})`
+        ? `![My tech stack](${snippetUrl})`
         : format === "html"
           ? `<img src="${htmlUrl}" alt="My tech stack" />`
           : exportUrl;
@@ -203,21 +251,28 @@ function composer(data: ComposerData) {
 
   function renderPreview() {
     if (!svg) return;
-    const contents =
-      paused && mode === "marquee"
-        ? svg.replace(
-            "</svg>",
-            "<style>.track{animation-play-state:paused!important}</style></svg>",
-          )
-        : svg;
-    const next = URL.createObjectURL(
-      new Blob([contents], { type: "image/svg+xml" }),
+    livePreview.show(
+      svg,
+      currentSvgs.length,
+      renderOptions(),
+      mode === "marquee",
+      surface,
     );
-    preview.src = next;
+    livePreview.setPaused(paused);
     preview.hidden = false;
     empty.hidden = true;
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    previewUrl = next;
+  }
+
+  function renderOptions() {
+    return {
+      widthPx: Number(controls.width.value),
+      heightPx: Number(controls.height.value),
+      gapPx: Number(controls.gap.value),
+      speedPxPerS: Number(controls.speed.value),
+      direction,
+      order,
+      seed,
+    };
   }
 
   function reorder(from: number, to: number) {
@@ -254,14 +309,16 @@ function composer(data: ComposerData) {
           (index + 1) +
           ". Alt plus left or right arrow to move.",
       );
-      if (nameSet.has(canonical(name))) {
+      if (nameSet.has(canonical(name)) || customLogos.has(name)) {
         const img = document.createElement("img");
-        img.src = `/v1/icons?i=${encodeURIComponent(name)}&height=24`;
+        img.src =
+          customLogos.get(name)?.dataUrl ??
+          `/v1/icons?i=${encodeURIComponent(name)}&height=24`;
         img.alt = "";
         li.append(img);
       }
       const label = document.createElement("span");
-      label.textContent = name;
+      label.textContent = customLogos.get(name)?.label ?? name;
       const remove = document.createElement("button");
       remove.type = "button";
       remove.textContent = "×";
@@ -317,8 +374,11 @@ function composer(data: ComposerData) {
         .filter(([alias]) => alias.includes(query))
         .map(([, name]) => name),
     );
-    const filtered = allNames.filter(
-      (name) => name.includes(query) || matchingAliases.has(name),
+    const filtered = [...customLogos.keys(), ...allNames].filter(
+      (name) =>
+        name.includes(query) ||
+        matchingAliases.has(name) ||
+        customLogos.get(name)?.label.toLowerCase().includes(query),
     );
     const chosen = new Set(names().map(canonical));
     element("results-count").textContent =
@@ -329,20 +389,22 @@ function composer(data: ComposerData) {
       button.className = "icon-option";
       button.type = "button";
       button.dataset.icon = name;
-      button.title = name;
+      button.title = customLogos.get(name)?.label ?? name;
       button.setAttribute("aria-pressed", String(chosen.has(name)));
       button.setAttribute(
         "aria-label",
         (chosen.has(name) ? "Remove " : "Add ") + name,
       );
       const img = document.createElement("img");
-      img.src = `/v1/icons?i=${encodeURIComponent(name)}&height=40`;
+      img.src =
+        customLogos.get(name)?.dataUrl ??
+        `/v1/icons?i=${encodeURIComponent(name)}&height=40`;
       img.alt = "";
       img.loading = "lazy";
       img.width = 35;
       img.height = 35;
       const label = document.createElement("span");
-      label.textContent = name;
+      label.textContent = customLogos.get(name)?.label ?? name;
       button.append(img, label);
       button.addEventListener("click", () => {
         const list = names();
@@ -379,6 +441,7 @@ function composer(data: ComposerData) {
     setExportEnabled(false);
     exportUrl = "";
     svg = "";
+    livePreview.clear();
     renderSnippet();
     preview.hidden = true;
     empty.hidden = false;
@@ -394,32 +457,89 @@ function composer(data: ComposerData) {
       notify("Pick icons below or choose a stack preset.");
       return;
     }
+    if (list.length > data.maxIcons) {
+      empty.textContent = "Your lineup is too long.";
+      notify(`Use up to ${data.maxIcons} icons.`, true);
+      return;
+    }
     request = new AbortController();
     const query = params().toString().replaceAll("%2C", ",");
     const path = `/v1/${mode}?${query}`;
     try {
-      const res = await fetch(path, { signal: request.signal });
-      if (!res.ok) {
-        const body = (await res.json()) as { error?: string };
+      const known = list.filter(
+        (name) => nameSet.has(canonical(name)) || customLogos.has(name),
+      );
+      const unknown = list.filter((name) => !known.includes(name));
+      if (!known.length)
         throw new Error(
-          body.error ||
-            "The image could not be generated. Try another icon list.",
+          "No known icons. Pick a logo below or add your own files.",
         );
+      const missing = [
+        ...new Set(
+          known
+            .filter(
+              (name) =>
+                !customLogos.has(name) && !assetCache.has(canonical(name)),
+            )
+            .map(canonical),
+        ),
+      ];
+      if (missing.length) {
+        const res = await fetch(
+          `/v1/assets?i=${missing.map(encodeURIComponent).join(",")}`,
+          { signal: request.signal },
+        );
+        if (!res.ok)
+          throw new Error(
+            "Could not load your icons. Check your connection and try again.",
+          );
+        const assets = (await res.json()) as {
+          names: string[];
+          svgs: string[];
+        };
+        if (id !== requestId) return;
+        assets.names.forEach((name, i) => {
+          const asset = assets.svgs[i];
+          if (asset) assetCache.set(name, asset);
+        });
       }
-      const result = await res.text();
       if (id !== requestId) return;
-      svg = result;
-      exportUrl = location.origin + path;
+      currentSvgs = known.map(
+        (name) =>
+          customLogos.get(name)?.svg ?? assetCache.get(canonical(name)) ?? "",
+      );
+      if (currentSvgs.some((asset) => !asset))
+        throw new Error("Some icons could not be loaded. Please try again.");
+      svg =
+        mode === "marquee"
+          ? renderer.marquee(currentSvgs, renderOptions())
+          : renderer.icons(currentSvgs, renderOptions());
+      hasLocal = known.some((name) => customLogos.has(name));
+      share.disabled = hasLocal;
+      formatButtons.forEach((button) => {
+        button.disabled = hasLocal && button.dataset.format === "url";
+      });
+      if (hasLocal && format === "url") {
+        format = "markdown";
+        formatButtons.forEach((button) => {
+          button.setAttribute(
+            "aria-pressed",
+            String(button.dataset.format === format),
+          );
+        });
+      }
+      exportUrl = hasLocal
+        ? `./icon-${mode === "marquee" ? "marquee" : "row"}.svg`
+        : location.origin + path;
+      element("export-note").textContent = hasLocal
+        ? "Download the SVG beside your README. Your logos stay in this browser until reloaded; editor links cannot include them."
+        : "Download the SVG beside your README, then paste the snippet. The URL tab needs a publicly reachable instance.";
       renderPreview();
       renderSnippet();
       setExportEnabled(true);
       input.removeAttribute("aria-invalid");
-      const skipped = res.headers.get("X-Unknown-Icons");
       notify(
-        skipped
-          ? "Unknown icons skipped: " +
-              skipped.split(",").map(decodeURIComponent).join(", ")
-          : "",
+        unknown.length ? `Unknown icons skipped: ${unknown.join(", ")}` : "",
       );
       element("preview-info").textContent =
         controls.height.value +
@@ -504,6 +624,58 @@ function composer(data: ComposerData) {
       changed();
     });
   });
+  orderButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      order = button.dataset.order === "shuffle" ? "shuffle" : "repeat";
+      if (order === "shuffle")
+        seed = crypto.getRandomValues(new Uint32Array(1))[0] ?? 1;
+      orderButtons.forEach((item) => {
+        item.setAttribute("aria-pressed", String(item === button));
+      });
+      changed();
+    });
+  });
+  element("add-logos").addEventListener("click", () => logoInput.click());
+  logoInput.addEventListener("change", async () => {
+    const files = Array.from(logoInput.files ?? []);
+    const button = element<HTMLButtonElement>("add-logos");
+    button.disabled = true;
+    let added = 0;
+    const failures: string[] = [];
+    for (const file of files) {
+      if (
+        customLogos.size >= data.maxLogoCount ||
+        names().length >= data.maxIcons
+      ) {
+        failures.push(
+          `Use up to ${data.maxLogoCount} local logos and ${data.maxIcons} icons total.`,
+        );
+        break;
+      }
+      try {
+        const logo = await readLogo(file, data.maxLogoBytes, data.logoRasterPx);
+        const key = `custom-${++logoCounter}`;
+        customLogos.set(key, logo);
+        input.value = [...names(), key].join(",");
+        added++;
+      } catch (error) {
+        failures.push(
+          error instanceof Error ? error.message : "Could not read a logo.",
+        );
+      }
+    }
+    logoInput.value = "";
+    button.disabled = false;
+    element("logo-status").textContent = [
+      added
+        ? `Added ${added} ${added === 1 ? "logo" : "logos"}. Download your SVG before reloading.`
+        : "",
+      ...failures,
+    ]
+      .filter(Boolean)
+      .join(" ");
+    if (added) changed();
+  });
   formatButtons.forEach((button) => {
     button.addEventListener("click", () => {
       format =
@@ -532,6 +704,7 @@ function composer(data: ComposerData) {
       button.addEventListener("click", () => {
         surface = button.dataset.surface ?? "dark";
         stage.dataset.surface = surface;
+        livePreview.setTheme(surface);
         document.querySelectorAll("button[data-surface]").forEach((item) => {
           if (item instanceof HTMLButtonElement)
             item.setAttribute("aria-pressed", String(item === button));
@@ -542,7 +715,7 @@ function composer(data: ComposerData) {
   pause.addEventListener("click", () => {
     paused = !paused;
     renderControls();
-    renderPreview();
+    livePreview.setPaused(paused);
   });
   copy.addEventListener("click", () => {
     if (exportUrl) void copyText(snippet.value, "Copied. Ready to paste.");
@@ -602,4 +775,7 @@ export const script = `(${composer.toString()})(${JSON.stringify({
   names: iconNames,
   aliases: config.icons.aliases,
   maxIcons: config.icons.maxPerRequest,
-})});`;
+  maxLogoBytes: config.landing.maxLogoBytes,
+  maxLogoCount: config.landing.maxLogoCount,
+  logoRasterPx: config.landing.logoRasterPx,
+})}, (${createSvgRenderer.toString()})(${JSON.stringify(rendererSettings)}, ${scopeIds.toString()}), ${createLivePreview.toString()}, ${readLocalLogo.toString()});`;

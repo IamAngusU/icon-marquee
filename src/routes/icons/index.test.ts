@@ -9,7 +9,7 @@ describe("GET /icons", () => {
     expect(res.status).toBe(200);
     expect(res.headers.get("Content-Type")).toBe("image/svg+xml");
     expect(body.startsWith('<svg width="217" height="48"')).toBe(true);
-    expect(body.match(/<g transform=/g)).toHaveLength(4);
+    expect(body.match(/<use href="#asset-/g)).toHaveLength(4);
     expect(body.indexOf("#F0DB4F")).toBeLessThan(body.indexOf("#654FF0"));
   });
 
@@ -24,7 +24,7 @@ describe("GET /icons", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers.get("X-Unknown-Icons")).toBe("nope");
-    expect((await res.text()).match(/<g transform=/g)).toHaveLength(2);
+    expect((await res.text()).match(/<use href="#asset-/g)).toHaveLength(2);
   });
 
   test("URL-encodes skipped names in the header", async () => {
