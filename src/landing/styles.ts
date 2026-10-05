@@ -9,7 +9,11 @@ export const styles = `
 .import-panel summary { cursor: pointer; font-size: 12px; color: var(--blue); }
 .import-panel.drag-over { outline: 2px dashed var(--blue); outline-offset: 5px; }
 #project-source { display: block; width: 100%; margin: 10px 0; padding: 10px; border: 1px solid var(--line); border-radius: 7px; font: 11px/1.5 ui-monospace, monospace; resize: vertical; max-height: 160px; }
-.icon-tooltip { position: fixed; z-index: 20; background: #fff; color: #182344; box-shadow: 0 3px 16px #0003; padding: 5px 9px; border-radius: 5px; font: 12px/1.4 var(--sans); pointer-events: none; max-width: 220px; overflow-wrap: anywhere; }
+.icon-tooltip { --tooltip-bg: #fbfcff; --tooltip-border: #afbdd3; --tooltip-tip: 50%; position: fixed; z-index: 20; max-width: min(240px,calc(100vw - 16px)); padding: 7px 10px 8px; border: 1px solid var(--tooltip-border); border-radius: 7px; background: var(--tooltip-bg); color: #182344; box-shadow: 0 8px 24px #09152d3d,0 1px 2px #09152d24; font: 650 12px/1.25 var(--sans); letter-spacing: .01em; text-align: center; overflow-wrap: anywhere; pointer-events: none; }
+.icon-tooltip::after { content: ""; position: absolute; left: var(--tooltip-tip); width: 8px; height: 8px; background: var(--tooltip-bg); transform: translateX(-50%) rotate(45deg); }
+.icon-tooltip[data-placement="top"]::after { bottom: -5px; border-right: 1px solid var(--tooltip-border); border-bottom: 1px solid var(--tooltip-border); }
+.icon-tooltip[data-placement="bottom"]::after { top: -5px; border-top: 1px solid var(--tooltip-border); border-left: 1px solid var(--tooltip-border); }
+.preview-stage[data-surface="light"] .icon-tooltip { --tooltip-bg: #182441; --tooltip-border: #314263; color: #f7f9ff; box-shadow: 0 8px 24px #09152d33,0 1px 2px #09152d24; }
 #preview use:focus-visible { outline: 3px solid #9cc2ff; }
 .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 16px 0; }
 .yaml-panel { margin-top: 14px; }

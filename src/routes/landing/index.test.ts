@@ -12,6 +12,8 @@ describe("GET /", () => {
     expect(body).toContain('id="preview" role="img"');
     expect(body).toContain("::-webkit-slider-runnable-track");
     expect(body).toContain("--range-progress");
+    expect(body).toContain("--tooltip-tip");
+    expect(body).toContain("elementFromPoint");
   });
 
   test("allows only the inline script whose hash is in the CSP", async () => {

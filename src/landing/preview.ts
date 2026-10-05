@@ -32,6 +32,12 @@ export function createLivePreview(
   let finishSeed = 1;
   let finishSerial = 0;
   let finishIndependent = true;
+  let pointerTarget: SVGUseElement | null = null;
+  let focusTarget: SVGUseElement | null = null;
+  let pointerInside = false;
+  let pointerX = 0;
+  let pointerY = 0;
+  let tooltipDismissed = false;
   const tooltip = document.createElement("div");
   tooltip.className = "icon-tooltip";
   tooltip.id = "preview-icon-tooltip";
@@ -45,6 +51,7 @@ export function createLivePreview(
       "transform",
       `translate(${right ? offset - stride : -offset}, 0)`,
     );
+    refreshTooltip();
   }
 
   function drawQueue() {
@@ -83,6 +90,13 @@ export function createLivePreview(
 
   function annotate(use: SVGUseElement, asset: number) {
     const label = labels[asset];
+    for (const attribute of [
+      "tabindex",
+      "role",
+      "aria-label",
+      "aria-describedby",
+    ])
+      use.removeAttribute(attribute);
     if (!label) return;
     use.setAttribute("tabindex", "0");
     use.setAttribute("role", "img");
@@ -105,18 +119,100 @@ export function createLivePreview(
     Array.from(track.children).forEach((node, index) => {
       node.setAttribute("transform", `translate(${index * stride}, 0)`);
     });
+    if (pointerTarget === use) pointerTarget = null;
+  }
+
+  function useFromTarget(target: EventTarget | null) {
+    const use =
+      target instanceof SVGUseElement
+        ? target
+        : target instanceof SVGElement
+          ? target.closest<SVGUseElement>("use")
+          : null;
+    return use && host.contains(use) && use.hasAttribute("aria-label")
+      ? use
+      : null;
+  }
+
+  function useAtPointer() {
+    return useFromTarget(document.elementFromPoint(pointerX, pointerY));
+  }
+
+  function hideTooltip() {
     tooltip.hidden = true;
   }
 
-  function showTooltip(event: Event) {
-    if (!(event.target instanceof SVGUseElement)) return;
-    const label = event.target.getAttribute("aria-label");
-    if (!label) return;
-    const bounds = event.target.getBoundingClientRect();
+  function positionTooltip(target: SVGUseElement, bounds: DOMRect) {
+    const label = target.getAttribute("aria-label");
+    if (!label || bounds.width <= 0 || bounds.height <= 0) {
+      hideTooltip();
+      return;
+    }
     tooltip.textContent = label;
     tooltip.hidden = false;
-    tooltip.style.left = `${Math.max(8, Math.min(innerWidth - tooltip.offsetWidth - 8, bounds.left + bounds.width / 2 - tooltip.offsetWidth / 2))}px`;
-    tooltip.style.top = `${Math.max(8, bounds.top - tooltip.offsetHeight - 8)}px`;
+    const margin = 8;
+    const gap = 11;
+    const center = bounds.left + bounds.width / 2;
+    const width = tooltip.offsetWidth;
+    const height = tooltip.offsetHeight;
+    const left = Math.max(
+      margin,
+      Math.min(innerWidth - width - margin, center - width / 2),
+    );
+    const above = bounds.top - height - gap;
+    const placement = above >= margin ? "top" : "bottom";
+    const top = placement === "top" ? above : bounds.bottom + gap;
+    tooltip.dataset.placement = placement;
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${Math.min(innerHeight - height - margin, top)}px`;
+    tooltip.style.setProperty(
+      "--tooltip-tip",
+      `${Math.max(12, Math.min(width - 12, center - left))}px`,
+    );
+  }
+
+  function refreshTooltip() {
+    if (tooltipDismissed) {
+      hideTooltip();
+      return;
+    }
+    let target = focusTarget;
+    let bounds = target?.getBoundingClientRect();
+    if (!target && pointerInside) {
+      target = pointerTarget;
+      bounds = target?.getBoundingClientRect();
+      if (
+        !bounds ||
+        pointerX < bounds.left ||
+        pointerX > bounds.right ||
+        pointerY < bounds.top ||
+        pointerY > bounds.bottom
+      ) {
+        target = useAtPointer();
+        pointerTarget = target;
+        bounds = target?.getBoundingClientRect();
+      }
+    }
+    if (!target || !bounds || !target.isConnected) {
+      hideTooltip();
+      return;
+    }
+    positionTooltip(target, bounds);
+  }
+
+  function pointTooltip(event: PointerEvent) {
+    pointerInside = true;
+    pointerX = event.clientX;
+    pointerY = event.clientY;
+    pointerTarget = useFromTarget(event.target) ?? useAtPointer();
+    tooltipDismissed = false;
+    refreshTooltip();
+  }
+
+  function focusTooltip(event: FocusEvent) {
+    focusTarget = useFromTarget(event.target);
+    tooltipDismissed = false;
+    refreshTooltip();
   }
 
   function tick(time: number) {
@@ -212,7 +308,9 @@ export function createLivePreview(
     sync();
     track = null;
     themeStyles = [];
-    tooltip.hidden = true;
+    pointerTarget = null;
+    focusTarget = null;
+    hideTooltip();
     host.replaceChildren();
   }
 
@@ -288,30 +386,30 @@ export function createLivePreview(
 
   reduced.addEventListener("change", sync);
   document.addEventListener("visibilitychange", sync);
-  host.addEventListener("pointermove", showTooltip);
-  host.addEventListener("focusin", showTooltip);
-  host.addEventListener("focusout", () => {
-    tooltip.hidden = true;
-  });
-  host.addEventListener("pointerout", () => {
-    tooltip.hidden = true;
+  host.addEventListener("pointermove", pointTooltip);
+  host.addEventListener("focusin", focusTooltip);
+  host.addEventListener("focusout", (event) => {
+    focusTarget = useFromTarget(event.relatedTarget);
+    refreshTooltip();
   });
   host.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") tooltip.hidden = true;
+    if (event.key === "Escape") {
+      tooltipDismissed = true;
+      hideTooltip();
+    }
   });
-  window.addEventListener(
-    "scroll",
-    () => {
-      tooltip.hidden = true;
-    },
-    true,
-  );
+  window.addEventListener("scroll", refreshTooltip, true);
+  window.addEventListener("resize", refreshTooltip);
   host.addEventListener("pointerenter", () => {
     hovering = true;
     if (settings.hoverPause) retarget();
   });
   host.addEventListener("pointerleave", () => {
     hovering = false;
+    pointerInside = false;
+    pointerTarget = null;
+    tooltipDismissed = false;
+    refreshTooltip();
     if (settings.hoverPause) retarget();
   });
   return { show, clear, setPaused, setTheme, setMotion };
