@@ -37,6 +37,20 @@ const featured = [
   "github",
   "figma",
 ];
+const compact = [
+  "blender",
+  "unity",
+  "godot",
+  "unrealengine",
+  "adobephotoshop",
+  "adobeillustrator",
+  "davinciresolve",
+  "krita",
+  "cinema4d",
+  "affinity",
+  "sketch",
+  "framer",
+];
 const sample = [...new Set(featured)];
 for (
   let cursor = 37;
@@ -61,4 +75,18 @@ await Bun.write(
   new URL("../docs/assets/icon-marquee.svg", import.meta.url),
   svg,
 );
-console.log("Generated the README from the same marquee renderer as the app.");
+const compactAssets = await loadIcons(compact.join(","));
+if ("error" in compactAssets) throw new Error(compactAssets.error);
+const compactSvg = renderIconMarquee(compactAssets.svgs, {
+  heightPx: 52,
+  gapPx: 12,
+  widthPx: 500,
+  speedPxPerS: 30,
+  order: "repeat",
+  edgeFade: 18,
+});
+await Bun.write(
+  new URL("../docs/assets/icon-marquee-compact.svg", import.meta.url),
+  compactSvg,
+);
+console.log("Generated the README marquees from the app renderer.");
