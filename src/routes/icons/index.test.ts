@@ -53,4 +53,23 @@ describe("GET /icons", () => {
 
     expect(res.status).toBe(400);
   });
+
+  test("static rows use exact requested height and pixel gap", async () => {
+    const res = await iconsRoutes.request("/?i=js,ts,react&height=64&gap=16");
+    expect(res.status).toBe(200);
+    expect(await res.text()).toStartWith('<svg width="224" height="64"');
+  });
+
+  test("static rows reject invalid size and spacing", async () => {
+    for (const query of [
+      "height=0",
+      "height=129",
+      "height=x",
+      "gap=-1",
+      "gap=97",
+      "gap=",
+    ]) {
+      expect((await iconsRoutes.request(`/?i=js&${query}`)).status).toBe(400);
+    }
+  });
 });

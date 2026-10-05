@@ -4,9 +4,6 @@ import { iconCount } from "../utils/registry";
 import { script } from "./script";
 import { styles } from "./styles";
 
-const { repoUrl, authorUrl, heroIcons, heroWidthPx, playgroundIcons } =
-  config.landing;
-
 export const scriptHash = `sha256-${createHash("sha256").update(script).digest("base64")}`;
 
 export const landingPage = `<!doctype html>
@@ -14,94 +11,88 @@ export const landingPage = `<!doctype html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>icon-marquee</title>
-<meta name="description" content="Scrolling marquees and static rows of tech icons, served as SVG. Drop one into any README with a plain img tag." />
-<meta name="color-scheme" content="dark" />
+<title>Icon Marquee — put your stack in motion</title>
+<meta name="description" content="Compose an animated tech stack with over 1,000 icons. Set the pace, preview your design, and export an SVG or a README-ready snippet." />
+<meta name="color-scheme" content="light" />
 <link rel="icon" href="/logo.svg" type="image/svg+xml" />
-<link rel="alternate" type="text/plain" href="/llms.txt" title="LLM usage guide" />
+<link rel="alternate" type="text/plain" href="/llms.txt" title="API usage guide" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Libre+Baskerville:ital@0;1&display=swap" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>${styles}</style>
 </head>
 <body>
-<main>
-  <header class="page intro">
-    <div class="name">
-      <span class="logo" role="img" aria-label="Pixel heart logo"></span>
-      <h1>icon-marquee<span class="dot">.</span></h1>
+<a class="skip-link" href="#composer">Skip to composer</a>
+<header class="topbar wrap">
+  <a class="brand" href="/" aria-label="Icon Marquee home"><span class="brand-mark" aria-hidden="true">≋</span>icon marquee</a>
+  <nav aria-label="Main navigation"><a href="#library">Icon library <span class="nav-count">${iconCount}</span></a><a href="#reference">API guide</a><a href="${config.landing.repoUrl}">GitHub ↗</a></nav>
+</header>
+<main class="wrap">
+  <section class="intro" aria-labelledby="page-title">
+    <div><p class="intro-label"><span aria-hidden="true" class="small-mark"></span>A little movement. A lot of personality.</p><h1 id="page-title">Your stack.<br />In good motion.</h1></div>
+    <p class="intro-copy">Turn the tools you love into a seamless icon loop. Make it yours, then drop it into your README or website.</p>
+  </section>
+
+  <section class="composer" id="composer" aria-label="Marquee composer">
+    <div class="preview-panel">
+      <div class="preview-toolbar"><div class="live-label"><span aria-hidden="true"></span>Live preview</div><div class="preview-actions" role="group" aria-label="Preview background"><button class="swatch light" data-surface="light" aria-label="Light preview" aria-pressed="false"></button><button class="swatch dark" data-surface="dark" aria-label="Dark preview" aria-pressed="true"></button><button id="pause" class="preview-pause" type="button" aria-pressed="false">Pause</button></div></div>
+      <div id="stage" class="preview-stage" data-surface="dark">
+        <img id="preview" src="/v1/marquee?i=${config.landing.playgroundIcons}&amp;width=760&amp;height=64&amp;gap=16&amp;speed=40" alt="Animated preview of your selected tech icons" width="760" height="64" />
+        <div class="empty-preview" id="empty-preview" hidden>Add a few icons to get things moving.</div>
+      </div>
+      <div class="preview-footer"><span id="preview-info">SVG. Sharp at every size.</span><span>Automatic light &amp; dark icons</span></div>
     </div>
-    <p class="phonetic">/ˈaɪkɒn mɑːˈkiː/ (EYE-kon mar-KEE) · SVG icon tickers for READMEs</p>
-    <ul class="links">
-      <li><a href="${repoUrl}">GitHub</a></li>
-      <li><a href="${repoUrl}#available-icons">All icons</a></li>
-      <li><a href="#try">Try it</a></li>
-    </ul>
-  </header>
 
-  <div class="ticker" role="img" aria-label="Animated row of tech icons">
-    <img src="/v1/marquee?i=${heroIcons}&amp;width=${heroWidthPx}" alt="" width="${heroWidthPx}" height="${config.icons.heightPx}" fetchpriority="high" />
-  </div>
-
-  <div class="page body">
-    <section id="try" aria-labelledby="try-heading">
-      <h2 id="try-heading" class="label">Try it</h2>
-      <label class="sr-only" for="icons">Icons, comma-separated</label>
-      <input id="icons" class="field-input" value="${playgroundIcons}" autocomplete="off" spellcheck="false" />
-      <p class="hint">Comma-separated. Short names work: <code>js</code>, <code>ts</code>, <code>py</code>, <code>k8s</code>, <code>wasm</code>.</p>
-      <div class="modes" role="group" aria-label="Output">
-        <button type="button" data-mode="marquee" aria-pressed="true">Marquee</button>
-        <button type="button" data-mode="icons" aria-pressed="false">Static row</button>
+    <div class="workspace">
+      <div class="selection-panel">
+        <div class="section-heading"><h2>Your lineup <span id="selection-count">6</span></h2><button id="clear" class="text-button" type="button">Clear all</button></div>
+        <p class="section-help" id="reorder-help">Drag to reorder. Or focus an icon and press Alt + arrow keys.</p>
+        <ul id="selected" class="selected-icons" aria-label="Selected icons" aria-describedby="reorder-help"></ul>
+        <label class="input-label" for="icons">Icon names</label>
+        <input id="icons" class="field-input" value="${config.landing.playgroundIcons}" autocomplete="off" spellcheck="false" aria-describedby="names-help" />
+        <p class="field-help" id="names-help">Comma-separated. Short names like js, ts, react and py work too.</p>
+        <div class="presets" role="group" aria-label="Stack presets"><span>Start with</span><button data-preset="frontend" type="button">Frontend</button><button data-preset="backend" type="button">Backend</button><button data-preset="creative" type="button">Creative</button><button data-preset="ai" type="button">AI tools</button></div>
+        <section id="library" class="library" aria-labelledby="library-heading">
+          <div class="section-heading"><h2 id="library-heading">Find your icons</h2><span id="results-count">${iconCount} icons</span></div>
+          <label class="search-field"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search ${iconCount} icons…" aria-label="Search icons by name or alias" autocomplete="off" /><kbd>/</kbd></label>
+          <div id="catalog" class="catalog" aria-label="Available icons"></div>
+          <p id="catalog-empty" class="field-help" hidden>No icons match. Try another name or a short name like “py”.</p>
+          <button id="show-more" type="button" class="show-more">Show more icons</button>
+        </section>
       </div>
-      <div class="preview">
-        <div class="preview-stage"><img id="preview" src="/v1/marquee?i=${playgroundIcons}" alt="Preview" height="56" /></div>
-        <p id="status" class="status" aria-live="polite"></p>
-        <dl class="snippets">
-          <div class="snippet"><dt>Markdown</dt><dd id="snippet-markdown"></dd><button type="button" class="copy" data-copy="markdown">Copy</button></div>
-          <div class="snippet"><dt>HTML</dt><dd id="snippet-html"></dd><button type="button" class="copy" data-copy="html">Copy</button></div>
-          <div class="snippet"><dt>URL</dt><dd id="snippet-url"></dd><button type="button" class="copy" data-copy="url">Copy</button></div>
-        </dl>
-      </div>
-    </section>
 
-    <section aria-labelledby="ref-heading">
-      <h2 id="ref-heading" class="label">Reference</h2>
-      <ul class="spec">
-        <li class="reveal">
-          <h3><code>/v1/marquee?i=…</code></h3>
-          <p>Animated SVG that scrolls your icons left in a seamless loop. It stops for viewers who turn on reduced motion.</p>
-          <p class="meta">${config.marquee.speedPxPerS}px/s · ${config.marquee.defaultWidthPx}px window by default</p>
-        </li>
-        <li class="reveal">
-          <h3><code>width</code></h3>
-          <p>Marquee only. Window width in px; the row repeats to fill it. Without it, the window shrinks to one row if shorter.</p>
-          <p class="meta">Optional · 1 to ${config.marquee.maxWidthPx}</p>
-        </li>
-        <li class="reveal">
-          <h3><code>/v1/icons?i=…</code></h3>
-          <p>The same icons as a static row, left to right in the order you list them.</p>
-          <p class="meta">${config.icons.heightPx}px tall</p>
-        </li>
-        <li class="reveal">
-          <h3><code>i</code></h3>
-          <p>Comma-separated icon names or short names. Case and spaces are ignored, duplicates are allowed, and unknown names are skipped.</p>
-          <p class="meta">Required · up to ${config.icons.maxPerRequest}</p>
-        </li>
-        <li class="reveal">
-          <h3>Theme</h3>
-          <p>Icons with light and dark versions follow the viewer's light/dark setting automatically.</p>
-          <p class="meta">${iconCount} icons</p>
-        </li>
-      </ul>
-    </section>
+      <aside class="settings-panel" aria-labelledby="settings-heading">
+        <h2 id="settings-heading">Make it yours</h2>
+        <div class="segmented" role="group" aria-label="Output mode"><button type="button" data-mode="marquee" aria-pressed="true">Marquee</button><button type="button" data-mode="icons" aria-pressed="false">Static row</button></div>
+        <div class="control"><label for="width">Canvas width <output id="width-value" for="width">760 px</output></label><input id="width" type="range" min="80" max="1600" step="1" value="760" /></div>
+        <div class="control"><label for="height">Icon size <output id="height-value" for="height">64 px</output></label><input id="height" type="range" min="20" max="128" step="1" value="64" /></div>
+        <div class="control"><label for="gap">Spacing <output id="gap-value" for="gap">16 px</output></label><input id="gap" type="range" min="0" max="96" step="1" value="16" /></div>
+        <div class="control"><label for="speed">Scroll speed <output id="speed-value" for="speed">40 px/s</output></label><input id="speed" type="range" min="5" max="200" step="1" value="40" /></div>
+        <div class="direction-control"><span>Direction</span><div class="segmented compact" role="group" aria-label="Scroll direction"><button data-direction="left" type="button" aria-pressed="true">← Left</button><button data-direction="right" type="button" aria-pressed="false">Right →</button></div></div>
+        <p class="motion-note">Respects reduced-motion preferences automatically.</p>
+        <div class="export-panel">
+          <h2>Take it with you</h2>
+          <div class="export-tabs" role="group" aria-label="Embed format"><button data-format="markdown" type="button" aria-pressed="true">Markdown</button><button data-format="html" type="button" aria-pressed="false">HTML</button><button data-format="url" type="button" aria-pressed="false">URL</button></div>
+          <label class="sr-only" for="snippet">Embed code</label><textarea id="snippet" readonly rows="4" spellcheck="false"></textarea>
+          <button id="copy" class="primary-button" type="button">Copy Markdown <span aria-hidden="true">⧉</span></button>
+          <div class="secondary-actions"><button id="download" type="button">Download SVG ↓</button><button id="share" type="button">Copy editor link ↗</button></div>
+          <p id="status" class="status" role="status" aria-live="polite"></p>
+          <p class="export-note">Downloads work anywhere. Live embeds need your own running instance.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
 
-    <footer>
-      <span>Icons by <a href="https://github.com/syvixor/skills-icons">skills-icons</a> (MIT) · <a href="${repoUrl}">Source</a> · <a href="/llms.txt">llms.txt</a> · MIT license</span>
-      <a class="credit" href="${authorUrl}" target="_blank" rel="noopener">another thing by <span class="credit-name">giann.dev</span></a>
-    </footer>
-  </div>
+  <section id="reference" class="reference" aria-labelledby="reference-heading">
+    <div class="reference-intro"><h2 id="reference-heading">One URL.<br /> Endless loops.</h2><p>No account, no API key, no JavaScript in your embed. Just an SVG.</p><a href="/llms.txt">Full API guide ↗</a></div>
+    <div class="reference-content">
+      <div class="endpoint"><code>/v1/marquee?i=js,ts,react</code><p>A seamless, animated row. Use <code>/v1/icons</code> for a static one.</p></div>
+      <dl class="parameter-list"><div><dt>i</dt><dd>Icon names or aliases, in order. Up to 100.</dd></div><div><dt>width</dt><dd>Window width, 1–3840 px. Marquee only.</dd></div><div><dt>height / gap</dt><dd>Icon size, 20–128 px. Spacing, 0–96 px.</dd></div><div><dt>speed / direction</dt><dd>5–200 px/s. Scroll left or right.</dd></div></dl>
+    </div>
+  </section>
 </main>
-
+<footer class="wrap footer"><span>Icon Marquee <span class="footer-dot">/</span> Made for your next README.</span><span>Based on <a href="https://github.com/gian-gg/icon-marquee">gian-gg/icon-marquee</a>. Icons by <a href="https://github.com/syvixor/skills-icons">skills-icons</a>. MIT.</span></footer>
+<noscript><p class="noscript">The interactive editor needs JavaScript. You can still generate an image directly at <a href="/v1/marquee?i=js,ts,react">/v1/marquee?i=js,ts,react</a>.</p></noscript>
 <script>${script}</script>
 </body>
 </html>`;

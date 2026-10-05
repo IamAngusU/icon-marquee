@@ -23,18 +23,26 @@ Animated SVG that scrolls the icons left in a seamless loop at ${marquee.speedPx
 Query parameters:
 - \`i\` (required): comma-separated icon names or short names, in display order. Max ${icons.maxPerRequest}. Case and surrounding spaces are ignored; duplicates are allowed.
 - \`width\` (optional): window width in px, a whole number from 1 to ${marquee.maxWidthPx}. The row repeats to fill it. Without it, the window is at most ${marquee.defaultWidthPx}px, or exactly one row if the row is shorter.
+- \`height\` (optional): icon height in px, a whole number from ${icons.minHeightPx} to ${icons.maxHeightPx}. Default ${icons.heightPx}.
+- \`gap\` (optional): space between icons in px, a whole number from ${icons.minGapPx} to ${icons.maxGapPx}. If omitted, spacing scales with icon height (44/256 of the height).
+- \`speed\` (optional): a whole number from ${marquee.minSpeedPxPerS} to ${marquee.maxSpeedPxPerS} px/s. Default ${marquee.speedPxPerS}.
+- \`direction\` (optional): \`left\` (default) or \`right\`.
 
 ### GET /v1/icons
 Static SVG with the icons in one row, left to right in request order. ${icons.heightPx}px tall.
 
 Query parameters:
 - \`i\` (required): same rules as above.
+- \`height\` and \`gap\` (optional): same rules as above.
+
+### GET /v1/catalog
+JSON object containing \`names\` (every canonical icon name) and \`aliases\` (short name to canonical name).
 
 ## Responses
 
 - 200 \`image/svg+xml\`, cached for ${icons.cacheMaxAgeS} seconds.
 - Unknown names are skipped: the response is still 200 with the known icons, and the skipped names are listed, URL-encoded and comma-separated, in the \`X-Unknown-Icons\` response header.
-- 400 \`application/json\` \`{"error": "..."}\` when \`i\` is missing or empty, has more than ${icons.maxPerRequest} names, contains no known name, or \`width\` is invalid.
+- 400 \`application/json\` \`{"error": "..."}\` when \`i\` is missing or empty, has more than ${icons.maxPerRequest} names, contains no known name, or any supported option is invalid. Numeric options accept decimal digits only.
 
 ## Theme
 

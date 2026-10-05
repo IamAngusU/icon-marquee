@@ -11,7 +11,7 @@ See `docs/architecture.md` for the stack, layout and request flow.
 
 ## Config and env
 
-- Read env vars only in `src/config.ts`, through `requireEnv`, and import `config` everywhere else.
+- Read application env vars only in `src/config.ts` and import `config` everywhere else. `APP_NAME` is optional with a safe default; Bun handles its own runtime options such as `PORT`.
 - Tuning values (limits, sizes, speeds, cache lifetimes) live in `config`, not as constants in modules.
 - Add every new var to both `.env` (gitignored) and `.env.example` (committed, values empty).
 - Do not add dotenv; Bun loads `.env`.

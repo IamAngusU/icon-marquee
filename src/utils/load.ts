@@ -2,6 +2,20 @@ import { config } from "../config";
 import { resolveIconPath } from "./registry";
 
 const MAX_ICONS = config.icons.maxPerRequest;
+const svgCache = new Map<string, Promise<string>>();
+
+function readIcon(path: string): Promise<string> {
+  const cached = svgCache.get(path);
+  if (cached) return cached;
+  const pending = Bun.file(path)
+    .text()
+    .catch((error: unknown) => {
+      svgCache.delete(path);
+      throw error;
+    });
+  svgCache.set(path, pending);
+  return pending;
+}
 
 export type LoadIconsResult =
   | { svgs: string[]; unknown: string[] }
@@ -28,6 +42,6 @@ export async function loadIcons(
     return { error: `No known icons: ${unknown.join(", ")}` };
   }
 
-  const svgs = await Promise.all(paths.map((path) => Bun.file(path).text()));
+  const svgs = await Promise.all(paths.map(readIcon));
   return { svgs, unknown };
 }

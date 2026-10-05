@@ -1,5 +1,11 @@
 # Attribution
 
+## icon-marquee
+
+- Original project: https://github.com/gian-gg/icon-marquee
+- License: MIT (original copyright notice preserved in `LICENSE`)
+- This private derivative retains the original API and icon collection, with a new composer, extended rendering options, and additional tests.
+
 ## skills-icons
 
 - Source: https://github.com/syvixor/skills-icons

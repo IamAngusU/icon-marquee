@@ -1,11 +1,3 @@
-function requireEnv(key: string): string {
-  const value = process.env[key];
-  if (!value) {
-    throw new Error(`${key} not configured`);
-  }
-  return value;
-}
-
 // Short names and renamed skill-icons names, mapped to icon names.
 const ICON_ALIASES: Readonly<Record<string, string>> = {
   access: "microsoftaccess",
@@ -188,23 +180,29 @@ const ICON_ALIASES: Readonly<Record<string, string>> = {
 };
 
 export const config = {
-  appName: requireEnv("APP_NAME"),
+  appName: process.env.APP_NAME?.trim() || "icon-marquee",
   icons: {
     maxPerRequest: 100,
     aliases: ICON_ALIASES,
     sizeUnits: 256,
     heightPx: 48,
+    minHeightPx: 20,
+    maxHeightPx: 128,
     gapUnits: 44,
+    minGapPx: 0,
+    maxGapPx: 96,
     cacheMaxAgeS: 86400,
   },
   marquee: {
     defaultWidthPx: 400,
     maxWidthPx: 3840,
     speedPxPerS: 30,
+    minSpeedPxPerS: 5,
+    maxSpeedPxPerS: 200,
   },
   landing: {
-    repoUrl: "https://github.com/gian-gg/icon-marquee",
-    authorUrl: "https://giann.dev",
+    repoUrl: "https://github.com/IamAngusU/icon-marquee",
+    authorUrl: "https://github.com/IamAngusU",
     heroIcons:
       "js,ts,react,nextjs,svelte,vue,tailwind,bun,nodejs,docker,postgres,redis,go,rust,python",
     playgroundIcons: "js,ts,react,docker,go,rust",
