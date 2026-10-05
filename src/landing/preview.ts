@@ -28,6 +28,13 @@ export function createLivePreview(
   let right = false;
   let next: () => number = () => 0;
   let themeStyles: { element: SVGStyleElement; source: string }[] = [];
+  let labels: string[] = [];
+  const tooltip = document.createElement("div");
+  tooltip.className = "icon-tooltip";
+  tooltip.id = "preview-icon-tooltip";
+  tooltip.setAttribute("role", "tooltip");
+  tooltip.hidden = true;
+  host.parentElement?.append(tooltip);
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   function draw() {
@@ -39,6 +46,7 @@ export function createLivePreview(
 
   function drawQueue() {
     if (!track) return;
+    tooltip.hidden = true;
     track.replaceChildren(
       ...queue.map((asset, index) => {
         const use = document.createElementNS(
@@ -47,9 +55,47 @@ export function createLivePreview(
         );
         use.setAttribute("href", `#asset-${asset}`);
         use.setAttribute("transform", `translate(${index * stride}, 0)`);
+        annotate(use, asset);
         return use;
       }),
     );
+  }
+
+  function annotate(use: SVGUseElement, asset: number) {
+    const label = labels[asset];
+    if (!label) return;
+    use.setAttribute("tabindex", "0");
+    use.setAttribute("role", "img");
+    use.setAttribute("aria-label", label);
+    use.setAttribute("aria-describedby", tooltip.id);
+  }
+
+  function recycle() {
+    if (!track) return;
+    const use = (
+      right ? track.lastElementChild : track.firstElementChild
+    ) as SVGUseElement | null;
+    if (!use) return;
+    const asset = (right ? queue[0] : queue[queue.length - 1]) ?? 0;
+    use.setAttribute("href", `#asset-${asset}`);
+    annotate(use, asset);
+    if (right) track.prepend(use);
+    else track.append(use);
+    Array.from(track.children).forEach((node, index) => {
+      node.setAttribute("transform", `translate(${index * stride}, 0)`);
+    });
+    tooltip.hidden = true;
+  }
+
+  function showTooltip(event: Event) {
+    if (!(event.target instanceof SVGUseElement)) return;
+    const label = event.target.getAttribute("aria-label");
+    if (!label) return;
+    const bounds = event.target.getBoundingClientRect();
+    tooltip.textContent = label;
+    tooltip.hidden = false;
+    tooltip.style.left = `${Math.max(8, Math.min(innerWidth - tooltip.offsetWidth - 8, bounds.left + bounds.width / 2 - tooltip.offsetWidth / 2))}px`;
+    tooltip.style.top = `${Math.max(8, bounds.top - tooltip.offsetHeight - 8)}px`;
   }
 
   function tick(time: number) {
@@ -78,7 +124,7 @@ export function createLivePreview(
         queue.shift();
         queue.push(next());
       }
-      drawQueue();
+      recycle();
     }
     draw();
     host.style.setProperty(
@@ -92,6 +138,12 @@ export function createLivePreview(
     cancelAnimationFrame(frame);
     frame = 0;
     previousTime = 0;
+    host.style.setProperty(
+      "--effect-play",
+      reduced.matches || document.hidden || velocity === 0
+        ? "paused"
+        : "running",
+    );
     if (
       animated &&
       (velocity > 0 || targetVelocity > 0) &&
@@ -139,6 +191,7 @@ export function createLivePreview(
     sync();
     track = null;
     themeStyles = [];
+    tooltip.hidden = true;
     host.replaceChildren();
   }
 
@@ -148,6 +201,7 @@ export function createLivePreview(
     options: MarqueeOptions,
     isAnimated: boolean,
     theme: string,
+    iconLabels: string[] = [],
   ) {
     clear();
     const parsed = new DOMParser().parseFromString(svg, "image/svg+xml");
@@ -158,6 +212,8 @@ export function createLivePreview(
       true,
     ) as unknown as SVGSVGElement;
     host.replaceChildren(root);
+    labels = iconLabels;
+    host.setAttribute("role", labels.length ? "group" : "img");
     themeStyles = Array.from(
       root.querySelectorAll<SVGStyleElement>("style"),
       (element) => ({
@@ -166,7 +222,14 @@ export function createLivePreview(
       }),
     );
     setTheme(theme);
-    if (!isAnimated) return;
+    if (!isAnimated) {
+      root
+        .querySelectorAll<SVGUseElement>("use[href^='#asset-']")
+        .forEach((use) => {
+          annotate(use, Number(use.getAttribute("href")?.slice(7)));
+        });
+      return;
+    }
     track = root.querySelector<SVGGElement>("g.track");
     if (!track) return;
     track.style.animation = "none";
@@ -200,6 +263,24 @@ export function createLivePreview(
 
   reduced.addEventListener("change", sync);
   document.addEventListener("visibilitychange", sync);
+  host.addEventListener("pointermove", showTooltip);
+  host.addEventListener("focusin", showTooltip);
+  host.addEventListener("focusout", () => {
+    tooltip.hidden = true;
+  });
+  host.addEventListener("pointerout", () => {
+    tooltip.hidden = true;
+  });
+  host.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") tooltip.hidden = true;
+  });
+  window.addEventListener(
+    "scroll",
+    () => {
+      tooltip.hidden = true;
+    },
+    true,
+  );
   host.addEventListener("pointerenter", () => {
     hovering = true;
     if (settings.hoverPause) retarget();

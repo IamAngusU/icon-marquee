@@ -55,7 +55,7 @@ Icons with light and dark versions follow the embedding page's color scheme by d
 
 ## Effects
 
-Both SVG endpoints accept \`effect=none|glint|chrome\`, \`intensity=0..100\`, and \`effectDuration=1..20\` seconds. Defaults are none, 35 and 5. Effects are script-free. Hover-to-pause and eased pause/resume are interactive generator features, not README-image interactions.
+Both SVG endpoints accept \`effect=none|glint|chrome|holo\`, \`intensity=0..100\`, \`effectDuration=1..20\` seconds, \`effectInterval=0..30\` seconds and \`effectVariation=0..100\` percent. Defaults are none, 35, 5, 3 and 55. Use \`effectArea=surface|border\`, \`effectTiming=stagger|random|sync\` and \`effectCoverage=all|some|selected\`. Selected coverage uses zero-based \`effectIndices=0,2\` into the loaded, deduplicated asset list. Marquees accept \`edgeFade=0..96\` px (default off). Effects are script-free; random timing repeats a seeded eight-sweep schedule per asset. Copies of an asset share its timing. Hover-to-pause and eased pause/resume are editor-only, and per-icon titles require inline SVG/HTML rather than README images. New composer exports include safe project metadata for re-import; API SVGs do not.
 
 ## Repository use and custom logos
 

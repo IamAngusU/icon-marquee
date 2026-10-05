@@ -10,21 +10,31 @@ Repeat preserves your order, including deliberate duplicates. Shuffle deduplicat
 
 ## Effects and motion presets
 
-Open **Effects & behavior** for Original, Glint or Chrome finishes, Instant/Ease/Custom Bézier pause behavior, and optional hover-to-pause. Default settings stay plain and immediate. Glint and Chrome are included in the downloaded SVG. Hover and pause controls require the interactive generator: GitHub displays a passive image and cannot run a generator or receive its internal hover events.
+Open **Effects & behavior** for Glint, Chrome or Holo, on the whole icon or only its rounded border. Original leaves the logos unchanged. Ghost edges softly fade incoming/outgoing icons (0 turns the fade off). Finish timing can be staggered, together, or random with varying sweep durations and rests. Choose all icons, occasional accents, or names from your lineup. These effects work in exported SVGs without JavaScript. Random exports repeat a seeded eight-sweep schedule per asset; repeated copies of the same logo share that schedule. Occasional accents are probabilistic, not a guarantee that exactly one icon shines at a time.
+
+Optional icon-name tooltips work in the editor (hover or keyboard focus, Escape to dismiss) and as native titles in inline HTML. GitHub embeds a passive image and does not expose per-icon tooltips. Instant/Ease/Custom Bézier pause and hover-to-pause are editor controls; exported images keep looping. The editor pauses both scroll and finishes at the current position.
 
 The YAML panel supports a small, validated subset: flat scalar keys and a four-number flow sequence. Unknown keys, duplicate keys, code, aliases and out-of-range values are rejected. This is a preset format, not a CSS/shader programming language.
 
 ```yaml
 effect: glint
 intensity: 35
+effectArea: border
+effectTiming: random
+effectCoverage: selected
+effectIcons: "js, react"
 effectDuration: 5
+effectInterval: 3
+effectVariation: 55
+edgeFade: 24
+tooltips: true
 pauseStyle: bezier
 pauseDuration: 450
 bezier: [0.42, 0, 0.58, 1]
 hoverPause: true
 ```
 
-Intensity is 0–100%, effectDuration is 1–20 seconds, pauseDuration is 100–2000 milliseconds, and Bézier coordinates stay between 0 and 1 to avoid reversing the motion. Partial presets start from the defaults. Copy YAML to share settings; copied editor links include the applied preset. Custom logos are still local-only. Reduced-motion preferences override animation.
+Intensity and random speed variation are 0–100%, sweep duration is 1–20 seconds, sweep interval is 0–30 seconds, edge fade is 0–96px, pause duration is 100–2000 milliseconds, and Bézier coordinates stay between 0 and 1. Partial presets start from defaults. Copy YAML or an editor link to share settings. Custom logos require the actual export. Reduced-motion preferences override animation.
 
 ## Put it in a repository
 
@@ -34,7 +44,13 @@ Download `icon-marquee.svg` (or `icon-row.svg` for static output), commit it bes
 ![My tech stack](./icon-marquee.svg)
 ```
 
-Markdown and HTML snippets point to this downloaded file. The URL tab instead copies a live API URL. Live embeds need an externally reachable running instance; localhost and making the source repository public do not host an API. GitHub's image proxy must be able to fetch the endpoint. SVG animation support depends on the client; reduced-motion viewers see a stationary row.
+Markdown points to this downloaded file. HTML copies inline SVG (including its editable metadata); **Download HTML** saves a standalone page. The URL tab instead copies a live API URL. Live embeds need an externally reachable running instance; localhost and making the source repository public do not host an API. GitHub's image proxy must be able to fetch the endpoint. SVG animation support depends on the client; reduced-motion viewers see a stationary row.
+
+## Reopen a design
+
+Under **Open an existing design**, choose or drop an Icon Marquee SVG/HTML export, or paste its contents. Import replaces the current design. New composer exports retain icons, uploaded PNG pixels, geometry, seed, effect and pause settings in versioned metadata. Everything is validated and processed locally; imported HTML/SVG code is never executed. Maximum file size is 12 MB.
+
+Older exports, API SVGs and third-party artwork lack these settings. They cannot be decomposed into an editable marquee; add them through **Your logos** instead. Export optimizers that remove metadata also remove the ability to reopen the design.
 
 ## Your own logos
 
@@ -74,7 +90,9 @@ All numeric options require decimal digits. Order and duplicates are preserved b
 
 SVGs use CSS animation and no JavaScript. Built-in themed icons follow the viewer's color scheme. The editor surface switch only changes the preview, not the downloaded asset. Responses cache for one day.
 
-Both SVG endpoints also accept `effect=none|glint|chrome`, `intensity=0..100`, `effectDuration=1..20` and `theme=auto|light|dark`. Auto is the default; themed SVGs inherit the embedding page's color scheme in modern browsers. GitHub sets that scheme from its selected theme, so a single adaptive SVG covers light and dark. Logos without theme variants do not change. If targeting an older image client, `theme=light` or `theme=dark` can create explicit variants for a `<picture>` fallback.
+Both SVG endpoints also accept `effect=none|glint|chrome|holo`, `intensity=0..100`, `effectDuration=1..20`, `effectInterval=0..30`, `effectVariation=0..100`, `effectArea=surface|border`, `effectTiming=stagger|random|sync`, `effectCoverage=all|some|selected`, and comma-separated, zero-based `effectIndices=0,2` for selected mode. Indices refer to loaded assets after shuffle deduplication. `edgeFade=0..96` applies only to marquee. API fade defaults to off; the editor defaults to 24px.
+
+Both endpoints accept `theme=auto|light|dark`. Auto is the default; themed SVGs inherit the embedding page's color scheme in modern browsers. GitHub sets that scheme from its selected theme, so a single adaptive SVG covers light and dark. Logos without theme variants do not change. If targeting an older image client, `theme=light` or `theme=dark` can create explicit variants for a `<picture>` fallback.
 
 ## Run and deploy
 
@@ -87,7 +105,7 @@ bun dev
 
 `bun dev` runs with hot reload; `bun start` runs production. `PORT` defaults to 3000. Optional `APP_NAME` defaults to `icon-marquee`. The server uses Bun/Hono; there is no frontend build step.
 
-`bun run build:static` exports a portable, browser-only generator to `dist/`. It uses relative local icon assets and no API backend, so it can also live on GitHub Pages or another static host. The public generator uses Sites; its project identity is in `.openai/hosting.json`. Source remains mirrored in this GitHub repository. Publish edits through the Sites workflow and preserve the public audience; update the GitHub mirror after checks. API URL export is hidden in the static generator because static hosting does not run the optional HTTP API.
+`bun run build:static` exports a portable, browser-only generator to `dist/`. It uses relative local icon assets and no API backend, so it can also live on GitHub Pages or another static host. API URL export is hidden because static hosting does not run the optional HTTP API. The existing public Site is a legacy deployment, not the latest build. Moving to the owner's VPS under angusu.de is pending approval; do not republish to ChatGPT Sites. Use the local build for the latest features until that migration is complete.
 
 Deploy to a Bun-compatible host, or use Vercel's Hono preset with the included Bun configuration. No authentication is built in. Source visibility and endpoint access are independent: a private source repo does not protect a deployed API.
 

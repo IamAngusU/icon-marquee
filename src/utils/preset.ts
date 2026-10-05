@@ -1,9 +1,17 @@
 import type { MotionSettings } from "./motion";
 
 export type EffectPreset = MotionSettings & {
-  effect: "none" | "glint" | "chrome";
+  effect: "none" | "glint" | "chrome" | "holo";
   intensity: number;
   effectDuration: number;
+  effectArea: "surface" | "border";
+  effectTiming: "stagger" | "random" | "sync";
+  effectCoverage: "all" | "some" | "selected";
+  effectIcons: string;
+  effectInterval: number;
+  effectVariation: number;
+  edgeFade: number;
+  tooltips: boolean;
 };
 
 // Flat YAML scalars and one numeric flow sequence; no code, tags or aliases.
@@ -24,20 +32,56 @@ export function createPresetCodec(defaults: EffectPreset) {
       const value = (match[2] ?? "").replace(/^(['"])(.*)\1$/, "$2");
       if (seen.has(key)) throw new Error(`Duplicate key: ${key}`);
       seen.add(key);
-      if (key === "effect" && ["none", "glint", "chrome"].includes(value))
+      if (
+        key === "effect" &&
+        ["none", "glint", "chrome", "holo"].includes(value)
+      )
         result.effect = value as EffectPreset["effect"];
+      else if (key === "effectArea" && ["surface", "border"].includes(value))
+        result.effectArea = value as EffectPreset["effectArea"];
+      else if (
+        key === "effectTiming" &&
+        ["stagger", "random", "sync"].includes(value)
+      )
+        result.effectTiming = value as EffectPreset["effectTiming"];
+      else if (
+        key === "effectCoverage" &&
+        ["all", "some", "selected"].includes(value)
+      )
+        result.effectCoverage = value as EffectPreset["effectCoverage"];
+      else if (
+        key === "effectIcons" &&
+        value.length <= 2000 &&
+        /^[a-z0-9+,\s-]*$/i.test(value)
+      )
+        result.effectIcons = value.trim().toLowerCase();
       else if (
         key === "pauseStyle" &&
         ["instant", "ease", "bezier"].includes(value)
       )
         result.pauseStyle = value as MotionSettings["pauseStyle"];
-      else if (key === "hoverPause" && ["true", "false"].includes(value))
-        result.hoverPause = value === "true";
-      else if (["intensity", "effectDuration", "pauseDuration"].includes(key)) {
+      else if (
+        (key === "hoverPause" || key === "tooltips") &&
+        ["true", "false"].includes(value)
+      )
+        result[key] = value === "true";
+      else if (
+        [
+          "intensity",
+          "effectDuration",
+          "pauseDuration",
+          "effectInterval",
+          "effectVariation",
+          "edgeFade",
+        ].includes(key)
+      ) {
         const limits: Record<string, [number, number]> = {
           intensity: [0, 100],
           effectDuration: [1, 20],
           pauseDuration: [100, 2000],
+          effectInterval: [0, 30],
+          effectVariation: [0, 100],
+          edgeFade: [0, 96],
         };
         const bounds = limits[key] ?? [0, 0];
         const number = Number(value);
@@ -49,7 +93,10 @@ export function createPresetCodec(defaults: EffectPreset) {
           throw new Error(`${key}: use ${bounds[0]}–${bounds[1]}.`);
         if (key === "intensity") result.intensity = number;
         else if (key === "effectDuration") result.effectDuration = number;
-        else result.pauseDuration = number;
+        else if (key === "pauseDuration") result.pauseDuration = number;
+        else if (key === "effectInterval") result.effectInterval = number;
+        else if (key === "effectVariation") result.effectVariation = number;
+        else result.edgeFade = number;
       } else if (key === "bezier") {
         let points: unknown;
         try {
@@ -72,7 +119,7 @@ export function createPresetCodec(defaults: EffectPreset) {
     return result;
   }
   function stringify(preset: EffectPreset) {
-    return `effect: ${preset.effect}\nintensity: ${preset.intensity}\neffectDuration: ${preset.effectDuration}\npauseStyle: ${preset.pauseStyle}\npauseDuration: ${preset.pauseDuration}\nbezier: [${preset.bezier.join(", ")}]\nhoverPause: ${preset.hoverPause}`;
+    return `effect: ${preset.effect}\nintensity: ${preset.intensity}\neffectArea: ${preset.effectArea}\neffectTiming: ${preset.effectTiming}\neffectCoverage: ${preset.effectCoverage}\neffectIcons: "${preset.effectIcons}"\neffectDuration: ${preset.effectDuration}\neffectInterval: ${preset.effectInterval}\neffectVariation: ${preset.effectVariation}\nedgeFade: ${preset.edgeFade}\ntooltips: ${preset.tooltips}\npauseStyle: ${preset.pauseStyle}\npauseDuration: ${preset.pauseDuration}\nbezier: [${preset.bezier.join(", ")}]\nhoverPause: ${preset.hoverPause}`;
   }
   return { parse, stringify };
 }

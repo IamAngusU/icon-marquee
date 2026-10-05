@@ -24,6 +24,7 @@ src/
     svg.ts               Shared browser/server SVG factory and seeded shuffle
     motion.ts            Shared cooldown picker and Bézier interpolation
     preset.ts            Bounded flat YAML preset codec
+    project.ts           Versioned, validated export metadata and import codec
     visual-query.ts      API effect/theme validation
     scope-ids.ts         Icon ID/reference scoping
     respond.ts           SVG content type, caching and skipped-icon header
@@ -73,13 +74,13 @@ Each selected icon is defined once with its own ID prefix (`i<index>`) and reuse
 
 Shuffle first deduplicates identical sources. A shared picker excludes the most recent floor(unique count / 2) icons and randomly chooses among the least-used eligible icons. Export uses a seeded 32-bit generator and 16 × unique count picks, retrying boundedly to respect the same cooldown at the cyclic seam; a cyclic permutation is the bounded fallback. SVG images cannot execute JavaScript, so only the editor supports continuously fresh randomness. The renderer factory is shared by browser, API and README asset generation.
 
-Glint and Chrome use reusable SVG gradient/clip definitions and overlays, not arbitrary source CSS. Glint uses a reduced-motion-aware CSS animation. SVG media rules remain automatic by default; a validated explicit theme can force them for compatibility exports.
+Glint, Chrome and Holo use reusable SVG gradient/clip definitions and overlays, not arbitrary source CSS. Each unique asset has an independent CSS schedule: staggered phases, synchronized phases, or eight seeded sweeps with varying speed and rest intervals. Occasional accents add longer random rests; selected mode filters by asset index. Copies of the same asset share its schedule. Surface and rounded 8-unit border treatments share the same renderer. Reduced motion hides the animated finish. A stationary alpha mask softly fades marquee edges; zero disables it and static rows are not faded. SVG media rules remain automatic by default; a validated explicit theme can force them for compatibility exports.
 
 ## Composer
 
 The page uses a blue-gray/white palette, a navy preview canvas, blue actions and Space Grotesk headings with system text. Fonts come from Google Fonts with local fallbacks.
 
-The left panel contains selected icons, text input, presets and a progressively revealed catalog. Search includes aliases. Items support removal, drag reordering and Alt+Left/Right keyboard reordering. The right panel controls SVG output and exports.
+The left panel contains selected icons, text input, presets and a 24-item paginated catalog with a fixed-height, locally scrolling viewport. Search resets the page and includes aliases. Items support removal, drag reordering and Alt+Left/Right keyboard reordering. The right panel controls SVG output and exports; the preview stays sticky on desktop.
 
 The client function in `script.ts` is TypeScript and is serialized with `toString()` after Bun transpilation. It must stay self-contained: do not close over server-only variables or imports. Serializable icon data is passed as a function argument.
 
@@ -91,7 +92,9 @@ Advanced options stay in one collapsed panel. The self-contained preset codec ac
 
 Uploaded SVG/PNG/JPEG/WebP files are decoded in an isolated image context and rasterized to 256px transparent PNGs (2 MB/file, 20 per session, bounded dimensions and load timeout). Raw uploaded markup never enters the DOM. Embedded data URLs keep custom exports self-contained. Files stay in a memory map until reload, with no server upload or persistent browser storage. Editor-link and URL export are disabled when selected logos require local data.
 
-Markdown and HTML snippets use the downloaded SVG filename; URL export uses the API. HTML attributes are escaped. Clipboard failures select the requested text for manual copying.
+Markdown uses the downloaded SVG filename; HTML copies inline SVG and URL export uses the API. Optional tooltip labels are escaped SVG titles on each exported use element. The preview adds text-only tooltips for pointer and keyboard focus; Escape dismisses them. README image embeddings do not expose per-icon interactions. Clipboard failures select the requested text for manual copying.
+
+Composer SVG/HTML exports contain a version-1, URI-encoded JSON project in a metadata element. Import reads only that exact envelope, validates bounds, enums, icon names and effect settings, and reconstructs the design from trusted bundled icons or embedded PNG pixels. Uploaded markup is never parsed into a document or executed; URLs and non-PNG data are rejected. PNGs are decoded and rasterized again before an atomic state replacement. File/text inputs are bounded to 12 MB, with 100 icons and 20 local logos. Existing files without metadata cannot be reconstructed. API-generated SVGs do not contain editor project metadata.
 
 Configuration is stored in the URL fragment and restored on load. Internal section navigation preserves it. Copying an editor link includes the active settings; these URLs are origin-specific. No account, database, analytics or local-storage persistence is used.
 
@@ -109,7 +112,9 @@ Vercel's Hono preset uses the existing `vercel.json` Bun version setting. `Bun.f
 
 Repository privacy and endpoint access are separate. There is no authentication layer. Deploy only when a public SVG endpoint is wanted, or protect a private instance at the hosting layer. GitHub's image proxy needs a reachable image URL; alternatively commit a downloaded SVG with the consuming README.
 
-The public generator is a separate static build of the same composer. `scripts/build-static.ts` writes HTML with its own hashed script CSP, the local SVG catalog, favicon and licenses to `dist/`. Relative icon paths work on subpath hosting. The browser uses those assets instead of `/v1/assets`, and hides API URL export. Sites publishes `dist/` according to `.openai/hosting.json`; its source push does not replace the GitHub origin. Keep generated output out of Git, build before publishing, and push the verified source commit to GitHub as well. No user logo data is uploaded to either service.
+The generator has a portable static build of the same composer. `scripts/build-static.ts` writes HTML with its own hashed script CSP, the local SVG catalog, favicon and licenses to `dist/`. Relative icon paths work on subpath hosting. The browser uses those assets instead of `/v1/assets`, and hides API URL export. Keep generated output out of Git and build before publishing. No user logo data is uploaded.
+
+Hosting is separate from source updates. The old public deployment is on ChatGPT Sites (`.openai/hosting.json`); the user rejected that provider. Do not publish further changes there. The proposed replacement is `https://angusu.de/icon-marquee/` on the user's VPS, but migration and deactivation of the old Site still require the pending approval. Until migration, the old public generator is not the latest source build.
 
 ## Validation
 

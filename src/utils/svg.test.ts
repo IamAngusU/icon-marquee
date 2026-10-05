@@ -10,6 +10,71 @@ const renderer = createSvgRenderer(
   createMotionTools(),
 );
 
+const simpleAssets = ["red", "blue", "green"].map(
+  (fill) =>
+    `<svg width="256" height="256"><rect width="256" height="256" fill="${fill}"/></svg>`,
+);
+test("ghost edges are transparent, bounded and independent of the moving track", () => {
+  const svg = renderer.marquee(simpleAssets, {
+    edgeFade: 96,
+    widthPx: 80,
+    heightPx: 64,
+  });
+  expect(svg).toContain('offset="0.45"');
+  expect(svg).toContain('<g mask="url(#edge-mask)"><g class="track">');
+  expect(renderer.marquee(simpleAssets, { edgeFade: 0 })).not.toContain(
+    "edge-mask",
+  );
+  expect(renderer.icons(simpleAssets, { edgeFade: 24 })).not.toContain(
+    "edge-mask",
+  );
+});
+
+test("effect schedules stagger, vary per sweep and target only chosen logos", () => {
+  const options = {
+    effect: "holo",
+    effectTiming: "random",
+    effectCoverage: "selected",
+    effectIndices: [0, 2],
+    effectArea: "border",
+    seed: 56,
+  } as const;
+  const svg = renderer.marquee(simpleAssets, {
+    ...options,
+    effectIndices: [0, 2],
+  });
+  expect(svg).toContain('mask="url(#surface-border)"');
+  expect(svg).toContain("@keyframes finish-0");
+  expect(svg).not.toContain("@keyframes finish-1");
+  expect(svg).toContain("@keyframes finish-2");
+  expect(svg).toBe(
+    renderer.marquee(simpleAssets, { ...options, effectIndices: [0, 2] }),
+  );
+  const schedules = [...svg.matchAll(/animation:finish-\d+ ([^"]+)/g)].map(
+    (match) => match[1],
+  );
+  expect(new Set(schedules).size).toBe(2);
+  expect(svg).toContain("prefers-reduced-motion:reduce");
+  expect(svg).not.toContain("<script");
+  const stagger = renderer.icons(simpleAssets, { effect: "glint" });
+  expect(
+    new Set([...stagger.matchAll(/linear (-?[\d.]+)s/g)].map((m) => m[1])).size,
+  ).toBe(3);
+  const sync = renderer.icons(simpleAssets, {
+    effect: "glint",
+    effectTiming: "sync",
+  });
+  expect(
+    new Set([...sync.matchAll(/linear (-?[\d.]+)s/g)].map((m) => m[1])).size,
+  ).toBe(1);
+});
+
+test("optional hover labels cannot insert markup", () => {
+  const svg = renderer.icons(simpleAssets, { labels: ['<script>"&'] });
+  expect(svg).toContain("&lt;script&gt;&quot;&amp;");
+  expect(svg).not.toContain("<script>");
+});
+
 describe("shuffle renderer", () => {
   test("keeps recent icons apart with a balanced distribution", () => {
     const sequence = renderer.shuffled(6, 1234);

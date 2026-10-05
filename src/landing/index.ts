@@ -46,6 +46,7 @@ export function createLandingPage(staticSite = false) {
 
     <div class="workspace">
       <div class="selection-panel">
+        <details class="import-panel"><summary>Open an existing design</summary><p class="field-help">Drop an Icon Marquee SVG or HTML export here, or paste it below. Import replaces this design. Everything stays local.</p><input id="project-file" type="file" accept=".svg,.html,.htm" hidden /><div class="secondary-actions"><button id="open-project" type="button">Choose SVG / HTML</button></div><label class="sr-only" for="project-source">SVG or HTML to import</label><textarea id="project-source" rows="3" spellcheck="false" placeholder="Paste your export…"></textarea><button id="import-project" type="button" class="upload-button">Import design</button><p class="field-help" id="import-status" role="status"></p></details>
         <div class="section-heading"><h2>Your lineup <span id="selection-count">6</span></h2><button id="clear" class="text-button" type="button">Clear all</button></div>
         <p class="section-help" id="reorder-help">Drag to reorder. Or focus an icon and press Alt + arrow keys.</p>
         <ul id="selected" class="selected-icons" aria-label="Selected icons" aria-describedby="reorder-help"></ul>
@@ -62,7 +63,7 @@ export function createLandingPage(staticSite = false) {
           <p id="results-count" class="results-count">${iconCount} icons</p>
           <div id="catalog" class="catalog" aria-label="Available icons"></div>
           <p id="catalog-empty" class="field-help" hidden>No icons match. Try another name or a short name like “py”.</p>
-          <button id="show-more" type="button" class="show-more">Show more icons</button>
+          <div class="catalog-pages" role="group" aria-label="Icon library pages"><button id="previous-icons" type="button">← Previous</button><span id="catalog-page" aria-live="polite"></span><button id="next-icons" type="button">Next →</button></div>
         </section>
       </div>
 
@@ -77,10 +78,21 @@ export function createLandingPage(staticSite = false) {
         <div class="direction-control"><span>Order</span><div class="segmented compact" role="group" aria-label="Icon order"><button data-order="repeat" type="button" aria-pressed="true">Repeat</button><button data-order="shuffle" type="button" aria-pressed="false">Shuffle</button></div></div>
         <p id="shuffle-note" class="motion-note" hidden>Fresh picks. Recent icons sit out. Duplicate logos count once.</p>
         <details class="advanced"><summary>Effects &amp; behavior</summary>
-          <label class="input-label" for="effect">Finish</label><select class="field-input" id="effect"><option value="none">Original</option><option value="glint">Glint</option><option value="chrome">Chrome</option></select>
+          <div class="control"><label for="edge-fade">Ghost edges <output id="edge-fade-value">24 px</output></label><input type="range" id="edge-fade" min="0" max="96" value="24" /></div>
+          <label class="checkbox-label"><input type="checkbox" id="tooltips" /> Icon names on hover</label>
+          <label class="input-label" for="effect">Finish</label><select class="field-input" id="effect"><option value="none">Original</option><option value="glint">Glint</option><option value="chrome">Chrome</option><option value="holo">Holo</option></select>
+          <div id="finish-controls" hidden>
+            <div class="effect-pair"><div><label class="input-label" for="effect-area">Apply to</label><select class="field-input" id="effect-area"><option value="surface">Whole icon</option><option value="border">Border only</option></select></div><div><label class="input-label" for="effect-timing">Timing</label><select class="field-input" id="effect-timing"><option value="stagger">Staggered</option><option value="random">Random</option><option value="sync">Together</option></select></div></div>
+            <label class="input-label" for="effect-coverage">Which icons?</label><select class="field-input" id="effect-coverage"><option value="all">All icons</option><option value="some">Occasional accents</option><option value="selected">Only these icons…</option></select>
+            <div id="effect-targets" hidden><label class="input-label" for="effect-icons">Icon names</label><input class="field-input" id="effect-icons" placeholder="js, react, custom-1" autocomplete="off" /><p class="field-help">Use names from your lineup.</p></div>
+            <div class="control"><label for="intensity">Intensity <output id="intensity-value">35%</output></label><input id="intensity" type="range" min="0" max="100" value="35" /></div>
+            <div class="control"><label for="effect-duration">Sweep duration <output id="effect-duration-value">5 s</output></label><input id="effect-duration" type="range" min="1" max="20" step=".5" value="5" /></div>
+            <div class="control"><label for="effect-interval">Between sweeps <output id="effect-interval-value">3 s</output></label><input id="effect-interval" type="range" min="0" max="30" step=".5" value="3" /></div>
+            <div class="control" id="variation-control"><label for="effect-variation">Random speed variation <output id="effect-variation-value">55%</output></label><input id="effect-variation" type="range" min="0" max="100" value="55" /></div>
+          </div>
           <label class="input-label" for="pause-style">Pause &amp; resume</label><select class="field-input" id="pause-style"><option value="instant">Instant</option><option value="ease">Ease in / out</option><option value="bezier">Custom Bézier</option></select>
           <label class="checkbox-label"><input type="checkbox" id="hover-pause" /> Pause on hover</label>
-          <p class="field-help">Hover and easing work in the generator. README images keep looping.</p>
+          <p class="field-help">Hover names: editor &amp; inline HTML only. Pause controls: editor only.</p>
           <details class="yaml-panel"><summary>YAML preset</summary><label class="sr-only" for="effect-yaml">Effect YAML</label><textarea id="effect-yaml" spellcheck="false" rows="8"></textarea><div class="secondary-actions"><button id="apply-preset" type="button">Apply preset</button><button id="copy-preset" type="button">Copy YAML</button></div><p class="field-help" id="preset-status" role="status">Flat YAML settings. No scripts or custom CSS.</p></details>
         </details>
         <div class="export-panel">
@@ -89,6 +101,7 @@ export function createLandingPage(staticSite = false) {
           <label class="sr-only" for="snippet">Embed code</label><textarea id="snippet" readonly rows="4" spellcheck="false"></textarea>
           <button id="copy" class="primary-button" type="button">Copy Markdown <span aria-hidden="true">⧉</span></button>
           <div class="secondary-actions"><button id="download" type="button">Download SVG ↓</button><button id="share" type="button">Copy editor link ↗</button></div>
+          <div class="secondary-actions"><button id="download-html" type="button">Download HTML ↓</button><span class="field-help">Both files can be reopened.</span></div>
           <p id="status" class="status" role="status" aria-live="polite"></p>
           <p id="export-note" class="export-note">Download to use in any repo. Live URL embeds need a publicly reachable instance.</p>
         </div>

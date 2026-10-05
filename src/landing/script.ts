@@ -1,6 +1,7 @@
 import { config } from "../config";
 import { createMotionTools } from "../utils/motion";
 import { createPresetCodec, type EffectPreset } from "../utils/preset";
+import { createProjectCodec, type MarqueeProject } from "../utils/project";
 import { iconNames } from "../utils/registry";
 import { rendererSettings } from "../utils/render";
 import { scopeIds } from "../utils/scope-ids";
@@ -13,6 +14,7 @@ type ComposerData = {
   aliases: Readonly<Record<string, string>>;
   maxIcons: number;
   maxLogoBytes: number;
+  maxProjectBytes: number;
   maxLogoCount: number;
   logoRasterPx: number;
   staticSite: boolean;
@@ -26,6 +28,7 @@ function composer(
   readLogo: typeof readLocalLogo,
   motion: ReturnType<typeof createMotionTools>,
   codec: ReturnType<typeof createPresetCodec>,
+  projectCodec: ReturnType<typeof createProjectCodec>,
 ) {
   function element<T extends HTMLElement>(id: string): T {
     const found = document.getElementById(id);
@@ -36,11 +39,23 @@ function composer(
   const input = element<HTMLInputElement>("icons");
   const preview = element<HTMLDivElement>("preview");
   const livePreview = makePreview(preview, motion);
-  let effects = data.effects;
+  let effects = codec.parse("");
   const effectSelect = element<HTMLSelectElement>("effect");
   const pauseStyle = element<HTMLSelectElement>("pause-style");
   const hoverPause = element<HTMLInputElement>("hover-pause");
   const yaml = element<HTMLTextAreaElement>("effect-yaml");
+  const effectFields = {
+    effectArea: element<HTMLSelectElement>("effect-area"),
+    effectTiming: element<HTMLSelectElement>("effect-timing"),
+    effectCoverage: element<HTMLSelectElement>("effect-coverage"),
+    effectIcons: element<HTMLInputElement>("effect-icons"),
+    intensity: element<HTMLInputElement>("intensity"),
+    effectDuration: element<HTMLInputElement>("effect-duration"),
+    effectInterval: element<HTMLInputElement>("effect-interval"),
+    effectVariation: element<HTMLInputElement>("effect-variation"),
+    edgeFade: element<HTMLInputElement>("edge-fade"),
+  };
+  const tooltips = element<HTMLInputElement>("tooltips");
   const stage = element<HTMLDivElement>("stage");
   const status = element<HTMLParagraphElement>("status");
   const selected = element<HTMLUListElement>("selected");
@@ -72,6 +87,7 @@ function composer(
   let logoCounter = 0;
   let hasLocal = false;
   let currentSvgs: string[] = [];
+  let currentNames: string[] = [];
   let order: "repeat" | "shuffle" = "repeat";
   let seed = 1;
   const presets: Record<string, string> = {
@@ -115,7 +131,7 @@ function composer(
   let format: "markdown" | "html" | "url" = "markdown";
   let paused = false;
   let surface = "dark";
-  let visibleCount = 24;
+  let catalogPage = 0;
   let requestId = 0;
   let request: AbortController | undefined;
   let timer: ReturnType<typeof setTimeout>;
@@ -143,6 +159,7 @@ function composer(
   function setExportEnabled(enabled: boolean) {
     copy.disabled = !enabled;
     download.disabled = !enabled;
+    element<HTMLButtonElement>("download-html").disabled = !enabled;
   }
 
   function params() {
@@ -154,7 +171,18 @@ function composer(
       params.set("effect", effects.effect);
       params.set("intensity", String(effects.intensity));
       params.set("effectDuration", String(effects.effectDuration));
+      for (const key of [
+        "effectArea",
+        "effectTiming",
+        "effectCoverage",
+        "effectInterval",
+        "effectVariation",
+      ] as const)
+        params.set(key, String(effects[key]));
+      const indices = renderOptions().effectIndices;
+      if (indices.length) params.set("effectIndices", indices.join(","));
     }
+    params.set("edgeFade", String(effects.edgeFade));
     if (mode === "marquee") {
       params.set("width", controls.width.value);
       params.set("speed", controls.speed.value);
@@ -187,13 +215,10 @@ function composer(
       try {
         effects = codec.parse(preset);
       } catch {
-        effects = data.effects;
+        effects = codec.parse("");
       }
     }
-    effectSelect.value = effects.effect;
-    pauseStyle.value = effects.pauseStyle;
-    hoverPause.checked = effects.hoverPause;
-    yaml.value = codec.stringify(effects);
+    syncEffectControls();
     livePreview.setMotion(effects);
     if (state.has("i")) input.value = state.get("i") ?? "";
     mode = state.get("mode") === "icons" ? "icons" : "marquee";
@@ -244,6 +269,27 @@ function composer(
     });
   }
 
+  function syncEffectControls() {
+    effectSelect.value = effects.effect;
+    pauseStyle.value = effects.pauseStyle;
+    hoverPause.checked = effects.hoverPause;
+    tooltips.checked = effects.tooltips;
+    for (const [key, field] of Object.entries(effectFields))
+      field.value = String(effects[key as keyof typeof effectFields]);
+    for (const [id, value, unit] of [
+      ["edge-fade", effects.edgeFade, " px"],
+      ["intensity", effects.intensity, "%"],
+      ["effect-duration", effects.effectDuration, " s"],
+      ["effect-interval", effects.effectInterval, " s"],
+      ["effect-variation", effects.effectVariation, "%"],
+    ] as const)
+      element(`${id}-value`).textContent = value + unit;
+    element("finish-controls").hidden = effects.effect === "none";
+    element("effect-targets").hidden = effects.effectCoverage !== "selected";
+    element("variation-control").hidden = effects.effectTiming !== "random";
+    yaml.value = codec.stringify(effects);
+  }
+
   function renderControls() {
     for (const [key, control] of Object.entries(controls)) {
       element<HTMLOutputElement>(`${key}-value`).textContent =
@@ -251,6 +297,7 @@ function composer(
     }
     controls.width.disabled = mode === "icons";
     controls.speed.disabled = mode === "icons";
+    effectFields.edgeFade.disabled = mode === "icons";
     directionButtons.forEach((button) => {
       button.disabled = mode === "icons";
     });
@@ -264,17 +311,23 @@ function composer(
   }
 
   function renderSnippet() {
+    if (svg)
+      svg = projectCodec.embed(
+        svg,
+        projectState(
+          names().filter(
+            (name) => nameSet.has(canonical(name)) || customLogos.has(name),
+          ),
+        ),
+      );
     const labels = { markdown: "Markdown", html: "HTML", url: "URL" };
     const snippetUrl = `./icon-${mode === "marquee" ? "marquee" : "row"}.svg`;
-    const htmlUrl = snippetUrl
-      .replaceAll("&", "&amp;")
-      .replaceAll('"', "&quot;");
     snippet.value = !exportUrl
       ? ""
       : format === "markdown"
         ? `![My tech stack](${snippetUrl})`
         : format === "html"
-          ? `<img src="${htmlUrl}" alt="My tech stack" />`
+          ? svg
           : exportUrl;
     copy.replaceChildren(document.createTextNode(`Copy ${labels[format]}`));
     const symbol = document.createElement("span");
@@ -291,6 +344,11 @@ function composer(
       renderOptions(),
       mode === "marquee",
       surface,
+      effects.tooltips
+        ? currentNames.map(
+            (name) => customLogos.get(name)?.label ?? canonical(name),
+          )
+        : [],
     );
     livePreview.setPaused(paused);
     preview.hidden = false;
@@ -306,9 +364,20 @@ function composer(
       direction,
       order,
       seed,
-      effect: effects.effect,
-      intensity: effects.intensity,
-      effectDuration: effects.effectDuration,
+      ...effects,
+      labels: effects.tooltips
+        ? currentNames.map(
+            (name) => customLogos.get(name)?.label ?? canonical(name),
+          )
+        : [],
+      effectIndices: currentNames.flatMap((name, i) =>
+        effects.effectIcons
+          .split(",")
+          .map((item) => canonical(item.trim()))
+          .includes(canonical(name))
+          ? [i]
+          : [],
+      ),
     };
   }
 
@@ -419,7 +488,14 @@ function composer(
     element("results-count").textContent =
       filtered.length + (filtered.length === 1 ? " icon" : " icons");
     catalog.replaceChildren();
-    for (const name of filtered.slice(0, visibleCount)) {
+    catalogPage = Math.min(
+      catalogPage,
+      Math.max(0, Math.ceil(filtered.length / 24) - 1),
+    );
+    for (const name of filtered.slice(
+      catalogPage * 24,
+      (catalogPage + 1) * 24,
+    )) {
       const button = document.createElement("button");
       button.className = "icon-option";
       button.type = "button";
@@ -464,7 +540,11 @@ function composer(
       catalog.append(button);
     }
     element("catalog-empty").hidden = filtered.length > 0;
-    element("show-more").hidden = filtered.length <= visibleCount;
+    element<HTMLButtonElement>("previous-icons").disabled = catalogPage === 0;
+    element<HTMLButtonElement>("next-icons").disabled =
+      (catalogPage + 1) * 24 >= filtered.length;
+    element("catalog-page").textContent =
+      `${filtered.length ? catalogPage * 24 + 1 : 0}–${Math.min((catalogPage + 1) * 24, filtered.length)} of ${filtered.length}`;
   }
 
   function invalidate() {
@@ -496,8 +576,6 @@ function composer(
       return;
     }
     request = new AbortController();
-    const query = params().toString().replaceAll("%2C", ",");
-    const path = `/v1/${mode}?${query}`;
     try {
       const known = list.filter(
         (name) => nameSet.has(canonical(name)) || customLogos.has(name),
@@ -557,12 +635,18 @@ function composer(
       );
       if (currentSvgs.some((asset) => !asset))
         throw new Error("Some icons could not be loaded. Please try again.");
-      if (mode === "marquee" && order === "shuffle")
+      currentNames = known;
+      if (mode === "marquee" && order === "shuffle") {
+        currentNames = known.filter(
+          (_, i) => currentSvgs.indexOf(currentSvgs[i] ?? "") === i,
+        );
         currentSvgs = [...new Set(currentSvgs)];
+      }
       svg =
         mode === "marquee"
           ? renderer.marquee(currentSvgs, renderOptions())
           : renderer.icons(currentSvgs, renderOptions());
+      svg = projectCodec.embed(svg, projectState(known));
       hasLocal = known.some((name) => customLogos.has(name));
       share.disabled = hasLocal;
       formatButtons.forEach((button) => {
@@ -583,7 +667,7 @@ function composer(
       exportUrl =
         hasLocal || data.staticSite
           ? `./icon-${mode === "marquee" ? "marquee" : "row"}.svg`
-          : location.origin + path;
+          : `${location.origin}/v1/${mode}?${params().toString().replaceAll("%2C", ",")}`;
       element("export-note").textContent = hasLocal
         ? "Download the SVG beside your README. Your logos stay in this browser until reloaded; editor links cannot include them."
         : "Download the SVG beside your README, then paste the snippet. One file adapts to light and dark.";
@@ -613,6 +697,101 @@ function composer(
     }
   }
 
+  function projectState(lineup = names()): MarqueeProject {
+    return {
+      version: 1,
+      names: lineup,
+      width: Number(controls.width.value),
+      height: Number(controls.height.value),
+      gap: Number(controls.gap.value),
+      speed: Number(controls.speed.value),
+      mode,
+      direction,
+      order,
+      seed,
+      surface: surface === "light" ? "light" : "dark",
+      effects,
+      logos: [...customLogos]
+        .filter(([key]) => lineup.includes(key))
+        .map(([key, logo]) => ({
+          key,
+          label: logo.label,
+          dataUrl: logo.dataUrl,
+        })),
+    };
+  }
+
+  let importing = false;
+  async function importProject(text: string) {
+    if (importing) return;
+    importing = true;
+    element<HTMLButtonElement>("import-project").disabled = true;
+    const importStatus = element("import-status");
+    importStatus.textContent = "Reading design…";
+    try {
+      const project = projectCodec.read(text);
+      if (
+        project.names.some(
+          (name) =>
+            !nameSet.has(canonical(name)) &&
+            !project.logos.some((logo) => logo.key === name),
+        )
+      )
+        throw new Error(
+          "This project contains unknown icons. Your current design has not changed.",
+        );
+      const logos = new Map<string, LocalLogo>();
+      for (const logo of project.logos) {
+        const bytes = Uint8Array.from(
+          atob(logo.dataUrl.split(",")[1] ?? ""),
+          (c) => c.charCodeAt(0),
+        );
+        const clean = await readLogo(
+          new File([bytes], `${logo.key}.png`, { type: "image/png" }),
+          data.maxLogoBytes,
+          data.logoRasterPx,
+        );
+        logos.set(logo.key, { ...clean, label: logo.label });
+      }
+      customLogos.clear();
+      for (const [key, logo] of logos) customLogos.set(key, logo);
+      logoCounter = Math.max(
+        0,
+        ...[...logos.keys()].map((key) => Number(key.slice(7))),
+      );
+      input.value = project.names.join(",");
+      for (const [key, field] of Object.entries(controls))
+        field.value = String(project[key as keyof typeof controls]);
+      ({ mode, direction, order, seed, surface, effects } = project);
+      paused = false;
+      catalogPage = 0;
+      search.value = "";
+      syncEffectControls();
+      livePreview.setMotion(effects);
+      saveState();
+      restoreState();
+      changed();
+      element<HTMLTextAreaElement>("project-source").value = "";
+      importStatus.textContent = `Design restored. ${project.names.length} icons${logos.size ? `, including ${logos.size} local ${logos.size === 1 ? "logo" : "logos"}` : ""}.`;
+    } catch (error) {
+      importStatus.textContent =
+        error instanceof Error
+          ? error.message
+          : "Could not import this design.";
+    } finally {
+      importing = false;
+      element<HTMLButtonElement>("import-project").disabled = false;
+    }
+  }
+
+  async function importFile(file: File) {
+    if (file.size > data.maxProjectBytes) {
+      element("import-status").textContent = "Keep project files under 12 MB.";
+      return;
+    }
+    await importProject(await file.text());
+  }
+
   function changed() {
     invalidate();
     renderSelected();
@@ -639,12 +818,47 @@ function composer(
 
   input.addEventListener("input", changed);
   search.addEventListener("input", () => {
-    visibleCount = 24;
+    catalogPage = 0;
     renderCatalog();
+    catalog.scrollTop = 0;
   });
-  element("show-more").addEventListener("click", () => {
-    visibleCount += 24;
-    renderCatalog();
+  for (const [id, step] of [
+    ["previous-icons", -1],
+    ["next-icons", 1],
+  ] as const)
+    element(id).addEventListener("click", () => {
+      catalogPage += step;
+      renderCatalog();
+      catalog.scrollTop = 0;
+    });
+  const projectFile = element<HTMLInputElement>("project-file");
+  element("open-project").addEventListener("click", () => projectFile.click());
+  projectFile.addEventListener("change", () => {
+    const file = projectFile.files?.[0];
+    if (file) void importFile(file);
+    projectFile.value = "";
+  });
+  element("import-project").addEventListener(
+    "click",
+    () =>
+      void importProject(element<HTMLTextAreaElement>("project-source").value),
+  );
+  const importPanel = document.querySelector<HTMLElement>(".import-panel");
+  importPanel?.addEventListener("dragover", (event) => {
+    if (event.dataTransfer?.types.includes("Files")) {
+      event.preventDefault();
+      importPanel.classList.add("drag-over");
+    }
+  });
+  importPanel?.addEventListener("dragleave", () =>
+    importPanel.classList.remove("drag-over"),
+  );
+  importPanel?.addEventListener("drop", (event) => {
+    event.preventDefault();
+    importPanel.classList.remove("drag-over");
+    importPanel.setAttribute("open", "");
+    const file = event.dataTransfer?.files[0];
+    if (file) void importFile(file);
   });
   element("clear").addEventListener("click", () => {
     input.value = "";
@@ -772,7 +986,31 @@ function composer(
   });
   effectSelect.addEventListener("change", () => {
     effects.effect = effectSelect.value as EffectPreset["effect"];
-    yaml.value = codec.stringify(effects);
+    syncEffectControls();
+    changed();
+  });
+  for (const [key, field] of Object.entries(effectFields))
+    field.addEventListener("input", () => {
+      try {
+        effects = codec.parse(
+          codec.stringify({
+            ...effects,
+            [key]:
+              typeof effects[key as keyof typeof effectFields] === "number"
+                ? Number(field.value)
+                : field.value,
+          }),
+        );
+        syncEffectControls();
+        changed();
+      } catch {
+        element("preset-status").textContent =
+          "Use comma-separated icon names.";
+      }
+    });
+  tooltips.addEventListener("change", () => {
+    effects.tooltips = tooltips.checked;
+    syncEffectControls();
     changed();
   });
   pauseStyle.addEventListener("change", () => {
@@ -782,27 +1020,32 @@ function composer(
     livePreview.setMotion(effects);
     yaml.value = codec.stringify(effects);
     saveState();
+    renderSnippet();
   });
   hoverPause.addEventListener("change", () => {
     effects.hoverPause = hoverPause.checked;
     livePreview.setMotion(effects);
     yaml.value = codec.stringify(effects);
     saveState();
+    renderSnippet();
   });
   element("apply-preset").addEventListener("click", () => {
     try {
       const next = codec.parse(yaml.value);
-      const appearanceChanged =
-        next.effect !== effects.effect ||
-        next.intensity !== effects.intensity ||
-        next.effectDuration !== effects.effectDuration;
+      const appearanceChanged = (
+        Object.keys(next) as (keyof EffectPreset)[]
+      ).some(
+        (key) =>
+          !["pauseStyle", "pauseDuration", "bezier", "hoverPause"].includes(
+            key,
+          ) && next[key] !== effects[key],
+      );
       effects = next;
-      effectSelect.value = effects.effect;
-      pauseStyle.value = effects.pauseStyle;
-      hoverPause.checked = effects.hoverPause;
+      syncEffectControls();
       livePreview.setMotion(effects);
       saveState();
       if (appearanceChanged) changed();
+      else renderSnippet();
       element("preset-status").textContent = "Preset applied.";
     } catch (error) {
       element("preset-status").textContent =
@@ -814,24 +1057,35 @@ function composer(
     () => void copyText(codec.stringify(effects), "YAML preset copied."),
   );
   copy.addEventListener("click", () => {
+    renderSnippet();
     if (exportUrl) void copyText(snippet.value, "Copied. Ready to paste.");
   });
   share.addEventListener("click", () => {
     saveState();
     void copyText(location.href, "Editor link copied with your settings.");
   });
-  download.addEventListener("click", () => {
+  function downloadFile(html: boolean) {
     if (!svg) return;
-    const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    renderSnippet();
+    const content = html
+      ? `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Icon Marquee</title><style>:root{color-scheme:light dark}body{margin:32px}svg{max-width:100%;height:auto}</style><body>${svg}</body></html>`
+      : svg;
+    const url = URL.createObjectURL(
+      new Blob([content], { type: html ? "text/html" : "image/svg+xml" }),
+    );
     const link = document.createElement("a");
     link.href = url;
-    link.download = `icon-${mode === "marquee" ? "marquee" : "row"}.svg`;
+    link.download = `icon-${mode === "marquee" ? "marquee" : "row"}.${html ? "html" : "svg"}`;
     document.body.append(link);
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    notify("SVG download started.");
-  });
+    notify(
+      `${html ? "HTML" : "SVG"} download started. Reopen it here to edit.`,
+    );
+  }
+  download.addEventListener("click", () => downloadFile(false));
+  element("download-html").addEventListener("click", () => downloadFile(true));
   document.addEventListener("keydown", (event) => {
     if (
       event.key === "/" &&
@@ -875,11 +1129,12 @@ export function createClientScript(staticSite = false) {
     aliases: config.icons.aliases,
     maxIcons: config.icons.maxPerRequest,
     maxLogoBytes: config.landing.maxLogoBytes,
+    maxProjectBytes: config.landing.maxProjectBytes,
     maxLogoCount: config.landing.maxLogoCount,
     logoRasterPx: config.landing.logoRasterPx,
     staticSite,
     effects: config.landing.effectDefaults,
-  })}, (${createSvgRenderer.toString()})(${JSON.stringify(rendererSettings)}, ${scopeIds.toString()}, ${motion}), ${createLivePreview.toString()}, ${readLocalLogo.toString()}, ${motion}, (${createPresetCodec.toString()})(${defaults}));`;
+  })}, (${createSvgRenderer.toString()})(${JSON.stringify(rendererSettings)}, ${scopeIds.toString()}, ${motion}), ${createLivePreview.toString()}, ${readLocalLogo.toString()}, ${motion}, (${createPresetCodec.toString()})(${defaults}), (${createProjectCodec.toString()}) ((${createPresetCodec.toString()})(${defaults}), ${config.landing.maxProjectBytes}));`;
 }
 
 export const script = createClientScript();

@@ -3,9 +3,17 @@ import type { createMotionTools } from "./motion";
 export type IconRowOptions = {
   heightPx?: number;
   gapPx?: number;
-  effect?: "none" | "glint" | "chrome";
+  effect?: "none" | "glint" | "chrome" | "holo";
   intensity?: number;
   effectDuration?: number;
+  effectArea?: "surface" | "border";
+  effectTiming?: "stagger" | "random" | "sync";
+  effectCoverage?: "all" | "some" | "selected";
+  effectIndices?: number[];
+  effectInterval?: number;
+  effectVariation?: number;
+  edgeFade?: number;
+  labels?: string[];
   theme?: "auto" | "light" | "dark";
 };
 export type MarqueeOptions = IconRowOptions & {
@@ -71,35 +79,108 @@ export function createSvgRenderer(
 
   function effects(options: IconRowOptions) {
     if (!options.effect || options.effect === "none") return "";
+    const stops =
+      options.effect === "glint"
+        ? '<stop stop-color="#fff" stop-opacity="0"/><stop offset=".38" stop-color="#fff" stop-opacity="0"/><stop offset=".48" stop-color="#c8edff" stop-opacity=".45"/><stop offset=".5" stop-color="#fff"/><stop offset=".55" stop-color="#fff" stop-opacity=".95"/><stop offset=".65" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>'
+        : options.effect === "holo"
+          ? '<stop stop-color="#7ffff2" stop-opacity="0"/><stop offset=".2" stop-color="#71e7ff"/><stop offset=".38" stop-color="#ada0ff"/><stop offset=".5" stop-color="#fff"/><stop offset=".6" stop-color="#ff94d9"/><stop offset=".76" stop-color="#ffe5a3"/><stop offset=".9" stop-color="#8fffd9"/><stop offset="1" stop-color="#8fffd9" stop-opacity="0"/>'
+          : '<stop stop-color="#a8bccb" stop-opacity="0"/><stop offset=".24" stop-color="#d5e3ee"/><stop offset=".4" stop-color="#fff"/><stop offset=".48" stop-color="#71849a"/><stop offset=".5" stop-color="#e8f5ff"/><stop offset=".54" stop-color="#fff"/><stop offset=".7" stop-color="#94acbf"/><stop offset="1" stop-color="#c2d8e8" stop-opacity="0"/>';
+    return `<linearGradient id="surface-sheen" x1="0" y1="0" x2="1" y2=".35">${stops}</linearGradient><clipPath id="surface-clip"><rect width="256" height="256" rx="40"/></clipPath><mask id="surface-border" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256"><rect x="4" y="4" width="248" height="248" rx="36" fill="none" stroke="white" stroke-width="8"/></mask><style>.finish{animation-play-state:var(--effect-play,running)!important;pointer-events:none}@media(prefers-reduced-motion:reduce){.finish{animation:none!important;display:none}}</style>`;
+  }
+
+  function finish(options: IconRowOptions, index: number) {
+    if (
+      !options.effect ||
+      options.effect === "none" ||
+      (options.effectCoverage === "selected" &&
+        !options.effectIndices?.includes(index))
+    )
+      return "";
+    let state =
+      (Math.imul(index + 1, 2654435761) ^
+        ((options as MarqueeOptions).seed ?? 1)) >>>
+      0;
+    const random = () => {
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+      return state / 4294967296;
+    };
+    const duration = options.effectDuration ?? 5;
+    const interval = options.effectInterval ?? 3;
+    const varying = options.effectTiming === "random";
+    const sparse = options.effectCoverage === "some";
+    const variation = (options.effectVariation ?? 55) / 100;
+    const cycles = Array.from({ length: varying || sparse ? 8 : 1 }, () => ({
+      sweep: Math.max(
+        0.3,
+        duration * (varying ? 1 + (random() * 2 - 1) * variation : 1),
+      ),
+      wait:
+        Math.max(0.1, interval * (varying ? 0.5 + random() : 1)) +
+        (sparse ? duration * (2 + random() * 5) : 0),
+    }));
+    const total = cycles.reduce((sum, c) => sum + c.sweep + c.wait, 0);
+    let cursor = 0;
+    const frames = cycles
+      .map(({ sweep, wait }) => {
+        const start = (cursor / total) * 100;
+        const end = ((cursor + sweep) / total) * 100;
+        cursor += sweep + wait;
+        return `${start.toFixed(4)}%{transform:translateX(-384px);opacity:0}${(start + (end - start) * 0.1).toFixed(4)}%{opacity:1}${(end - (end - start) * 0.1).toFixed(4)}%{opacity:1}${end.toFixed(4)}%{transform:translateX(384px);opacity:0}`;
+      })
+      .join("");
+    const delay =
+      options.effectTiming === "sync" && !sparse
+        ? 0
+        : options.effectTiming !== "random" && !sparse
+          ? -((index * 0.61803398875) % 1) * total
+          : -random() * total;
     const opacity = Math.min(1, Math.max(0, (options.intensity ?? 35) / 100));
-    const duration = Math.min(20, Math.max(1, options.effectDuration ?? 5));
-    const shine = options.effect === "glint";
-    return `<linearGradient id="surface-sheen" x1="0" y1="0" x2="${shine ? "1" : "0"}" y2="1"><stop stop-color="#fff" stop-opacity="0"/><stop offset=".4" stop-color="#fff" stop-opacity=".08"/><stop offset=".5" stop-color="#fff" stop-opacity="${opacity}"/><stop offset=".57" stop-color="#12213a" stop-opacity="${opacity / 2}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="surface-clip"><rect width="256" height="256" rx="40"/></clipPath>${shine ? `<style>@keyframes glint{0%,25%{transform:translateX(-300px)}65%,100%{transform:translateX(300px)}}.glint{animation:glint ${duration}s ease-in-out infinite;animation-play-state:var(--effect-play,running)}@media(prefers-reduced-motion:reduce){.glint{animation:none;display:none}}</style>` : ""}`;
+    const strength =
+      options.effect === "glint" ? Math.min(1, opacity * 1.65) : opacity;
+    return `<style>@keyframes finish-${index}{${frames}100%{transform:translateX(384px);opacity:0}}</style><g clip-path="url(#surface-clip)"${options.effectArea === "border" ? ' mask="url(#surface-border)"' : ""} pointer-events="none" opacity="${strength}"><rect class="finish ${options.effect}" x="-128" width="512" height="256" fill="url(#surface-sheen)" style="animation:finish-${index} ${total.toFixed(4)}s linear ${delay.toFixed(4)}s infinite"/></g>`;
+  }
+
+  function escapeLabel(value: string) {
+    return value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll(">", "&gt;");
   }
 
   function definitions(svgs: readonly string[], options: IconRowOptions) {
-    const finish =
-      options.effect && options.effect !== "none"
-        ? `<g clip-path="url(#surface-clip)" pointer-events="none"><rect class="${options.effect === "glint" ? "glint" : "chrome"}" width="256" height="256" fill="url(#surface-sheen)"/></g>`
-        : "";
     return (
       "<defs>" +
       effects(options) +
       svgs
         .map(
           (svg, i) =>
-            `<g id="asset-${i}">${scopeIds(svg, `i${i}`)}${finish}</g>`,
+            `<g id="asset-${i}">${scopeIds(svg, `i${i}`)}${finish(options, i)}</g>`,
         )
         .join("") +
       "</defs>"
     );
   }
 
-  function row(sequence: readonly number[], stride: number, offset = 0) {
+  function faded(content: string, width: number, height: number, fadePx = 0) {
+    if (!fadePx) return content;
+    const fraction = Math.min(
+      0.45,
+      (fadePx * settings.sizeUnits) / height / width,
+    );
+    return `<defs><linearGradient id="edge-gradient"><stop stop-color="white" stop-opacity="0"/><stop offset="${fraction}" stop-color="white"/><stop offset="${1 - fraction}" stop-color="white"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient><mask id="edge-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="${width}" height="256"><rect width="${width}" height="256" fill="url(#edge-gradient)"/></mask></defs><g mask="url(#edge-mask)">${content}</g>`;
+  }
+
+  function row(
+    sequence: readonly number[],
+    stride: number,
+    offset = 0,
+    labels: readonly string[] = [],
+  ) {
     return sequence
       .map(
         (asset, i) =>
-          `<use href="#asset-${asset}" transform="translate(${offset + i * stride}, 0)"/>`,
+          `<use href="#asset-${asset}" transform="translate(${offset + i * stride}, 0)"${labels[asset] ? `><title>${escapeLabel(labels[asset] ?? "")}</title></use>` : "/>"}`,
       )
       .join("");
   }
@@ -126,7 +207,7 @@ export function createSvgRenderer(
     return document(
       svgs.length * stride - gap,
       height,
-      definitions(svgs, options) + row(sequence, stride),
+      definitions(svgs, options) + row(sequence, stride, 0, options.labels),
       options.theme,
     );
   }
@@ -158,12 +239,12 @@ export function createSvgRenderer(
     const style = `<style>@keyframes scroll{${keyframes}}.track{animation:scroll ${duration}s linear infinite}@media (prefers-reduced-motion:reduce){.track{animation:none}}</style>`;
     const copies = Math.ceil(width / period) + 1;
     const rows = Array.from({ length: copies }, (_, i) =>
-      row(sequence, stride, i * period),
+      row(sequence, stride, i * period, options.labels),
     ).join("");
     return document(
       width,
       height,
-      `${definitions(svgs, options)}${style}<g class="track">${rows}</g>`,
+      `${definitions(svgs, options)}${style}${faded(`<g class="track">${rows}</g>`, width, height, options.edgeFade)}`,
       options.theme,
     );
   }

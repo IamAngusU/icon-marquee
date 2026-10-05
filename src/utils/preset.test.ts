@@ -33,8 +33,29 @@ test("rejects unsupported code, references, fields, duplicates and out-of-range 
     "bezier: [0, -1, 1, 1]",
     "bezier: [0, 1]",
     "hoverPause: yes",
+    "effectTiming: chaos",
+    "effectArea: path",
+    "effectIcons: <script>",
+    "effectCoverage: unknown",
+    "effectInterval: 31",
+    "effectVariation: -1",
+    "edgeFade: 97",
+    "tooltips: script",
     "x".repeat(4097),
   ]) {
     expect(() => codec.parse(text)).toThrow();
   }
+});
+
+test("older presets receive safe defaults for new controls", () => {
+  expect(codec.parse("effect: glint\neffectDuration: 5")).toMatchObject({
+    effectArea: "surface",
+    effectTiming: "stagger",
+    edgeFade: 24,
+    tooltips: false,
+  });
+  const extended = codec.parse(
+    'effect: holo\neffectIcons: "js, react, custom-1"\neffectCoverage: selected\neffectTiming: random\neffectInterval: 2.5\neffectVariation: 80\ntooltips: true',
+  );
+  expect(codec.parse(codec.stringify(extended))).toEqual(extended);
 });
