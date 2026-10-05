@@ -8,6 +8,8 @@ Pick from 1,041 icons, add your own logos, and export one animated SVG. No insta
 
 ![A real Icon Marquee export with a broad mix of icons](docs/assets/icon-marquee_readme.svg)
 
+Or change the width, effect and more:
+
 ![A compact Icon Marquee export with creative tools](docs/assets/icon-marquee-compact.svg)
 
 Download the SVG, commit it beside your README, paste:
