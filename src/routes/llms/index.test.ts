@@ -10,6 +10,9 @@ describe("GET /llms.txt", () => {
     expect(res.headers.get("Content-Type")).toBe("text/plain; charset=utf-8");
     expect(body.startsWith("# icon-marquee")).toBe(true);
     expect(body).toContain("https://example.test/v1/marquee?i=");
+    expect(body).toContain(
+      "[![My stack](./icon-marquee.svg)](https://github.com/IamAngusU/icon-marquee)",
+    );
   });
 
   test("lists short names and every icon name", async () => {

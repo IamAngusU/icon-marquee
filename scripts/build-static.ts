@@ -23,7 +23,7 @@ const html = createLandingPage(true)
   )
   .replace(
     /<section id="reference"[\s\S]*?<\/section>/,
-    '<section id="reference" class="reference"><div class="reference-intro"><h2>Pick. Download.<br />Paste.</h2><p>Commit the SVG beside your README. No account or hosted API needed.</p></div><div class="reference-content"><div class="endpoint"><code>![My tech stack](./icon-marquee.svg)</code></div><p class="field-help">One adaptive file for light and dark. Original logos stay vector; your uploaded logos are embedded locally as PNGs.</p></div></section>',
+    '<section id="reference" class="reference"><div class="reference-intro"><h2>Pick. Download.<br />Paste.</h2><p>Commit the SVG beside your README. No account or hosted API needed.</p></div><div class="reference-content"><div class="endpoint"><code>[![My tech stack](./icon-marquee.svg)](https://github.com/IamAngusU/icon-marquee)</code></div><p class="field-help">One adaptive file for light and dark. Original logos stay vector; your uploaded logos are embedded locally as PNGs.</p></div></section>',
   )
   .replace(
     /<noscript>[\s\S]*?<\/noscript>/,

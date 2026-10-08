@@ -15,6 +15,7 @@ describe("GET /", () => {
     expect(body).toContain("--tooltip-tip");
     expect(body).toContain("elementFromPoint");
     expect(body).toContain('class="brand-heart"');
+    expect(body).toContain("https://github.com/IamAngusU/icon-marquee");
     expect(body).not.toContain(">≋<");
   });
 

@@ -342,7 +342,7 @@ function composer(
     snippet.value = !exportUrl
       ? ""
       : format === "markdown"
-        ? `![My tech stack](${snippetUrl})`
+        ? `[![My tech stack](${snippetUrl})](https://github.com/IamAngusU/icon-marquee)`
         : format === "html"
           ? svg
           : exportUrl;

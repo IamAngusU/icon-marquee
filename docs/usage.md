@@ -41,10 +41,16 @@ Intensity and random speed variation are 0–100%, sweep duration is 1–20 seco
 Download `icon-marquee.svg` (or `icon-row.svg` for static output), commit it beside your README and use the generated Markdown:
 
 ```md
-![My tech stack](./icon-marquee.svg)
+[![My tech stack](./icon-marquee.svg)](https://github.com/IamAngusU/icon-marquee)
 ```
 
-Markdown points to this downloaded file. HTML copies inline SVG (including its editable metadata); **Download HTML** saves a standalone page. The URL tab instead copies a live API URL. Live embeds need an externally reachable running instance; localhost and making the source repository public do not host an API. GitHub's image proxy must be able to fetch the endpoint. SVG animation support depends on the client; reduced-motion viewers see a stationary row.
+The image source points to the downloaded file; the surrounding link credits and
+opens the Icon Marquee repository instead of opening the raw SVG. HTML copies inline
+SVG (including its editable metadata); **Download HTML** saves a standalone page.
+The URL tab instead copies a live API URL. Live embeds need an externally reachable
+running instance; localhost and making the source repository public do not host an
+API. GitHub's image proxy must be able to fetch the endpoint. SVG animation support
+depends on the client; reduced-motion viewers see a stationary row.
 
 ## Reopen a design
 

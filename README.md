@@ -1,6 +1,6 @@
 # Icon Marquee
 
-<img src="docs/assets/icon-marquee-lockup.svg" alt="Icon Marquee — a pixel heart in motion" width="360" />
+<a href="https://github.com/IamAngusU/icon-marquee"><img src="docs/assets/icon-marquee-lockup.svg" alt="Icon Marquee — a pixel heart in motion" width="360" /></a>
 
 Static logo walls all look the same. Give your stack a little motion.
 
@@ -8,16 +8,16 @@ Pick from 1,041 icons, add your own logos, and export one animated SVG. No insta
 
 [![Open generator](docs/assets/generator.svg?v=2)](https://angusu.de/icon-marquee/)
 
-![A real Icon Marquee export with a broad mix of icons](docs/assets/icon-marquee_readme.svg)
+[![A real Icon Marquee export with a broad mix of icons](docs/assets/icon-marquee_readme.svg)](https://github.com/IamAngusU/icon-marquee)
 
 Or change the width, effect and more:
 
-![A compact Icon Marquee export with creative tools](docs/assets/icon-marquee-compact.svg)
+[![A compact Icon Marquee export with creative tools](docs/assets/icon-marquee-compact.svg)](https://github.com/IamAngusU/icon-marquee)
 
 Download the SVG, commit it beside your README, paste:
 
 ```md
-![My tech stack](./icon-marquee.svg)
+[![My tech stack](./icon-marquee.svg)](https://github.com/IamAngusU/icon-marquee)
 ```
 
 One file adapts to light and dark. Optional shuffle, glint, holo and YAML presets. Your logos stay in your browser.
