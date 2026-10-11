@@ -1,74 +1,14 @@
 import { Hono } from "hono";
-import { config } from "../../config";
 import { loadIcons } from "../../utils/load";
-import { optionalWholeNumber } from "../../utils/query";
+import { marqueeQuery } from "../../utils/marquee-query";
 import { renderIconMarquee } from "../../utils/render";
 import { svgResponse } from "../../utils/respond";
-import { visualQuery } from "../../utils/visual-query";
 
 export const marqueeRoutes = new Hono();
 
 marqueeRoutes.get("/", async (c) => {
-  const visual = visualQuery(c.req.query());
-  if ("error" in visual) return c.json({ error: visual.error }, 400);
-  const order = c.req.query("order");
-  if (order !== undefined && order !== "repeat" && order !== "shuffle") {
-    return c.json(
-      { error: "Query param 'order' must be 'repeat' or 'shuffle'" },
-      400,
-    );
-  }
-  const seed = optionalWholeNumber(
-    "seed",
-    c.req.query("seed"),
-    0,
-    config.marquee.maxSeed,
-  );
-  if ("error" in seed) return c.json({ error: seed.error }, 400);
-  const numberParams = {
-    widthPx: optionalWholeNumber(
-      "width",
-      c.req.query("width"),
-      1,
-      config.marquee.maxWidthPx,
-    ),
-    heightPx: optionalWholeNumber(
-      "height",
-      c.req.query("height"),
-      config.icons.minHeightPx,
-      config.icons.maxHeightPx,
-    ),
-    gapPx: optionalWholeNumber(
-      "gap",
-      c.req.query("gap"),
-      config.icons.minGapPx,
-      config.icons.maxGapPx,
-    ),
-    speedPxPerS: optionalWholeNumber(
-      "speed",
-      c.req.query("speed"),
-      config.marquee.minSpeedPxPerS,
-      config.marquee.maxSpeedPxPerS,
-    ),
-  };
-  const invalidNumber = Object.values(numberParams).find(
-    (param) => "error" in param,
-  );
-  if (invalidNumber && "error" in invalidNumber) {
-    return c.json({ error: invalidNumber.error }, 400);
-  }
-
-  const direction = c.req.query("direction");
-  if (
-    direction !== undefined &&
-    direction !== "left" &&
-    direction !== "right"
-  ) {
-    return c.json(
-      { error: "Query param 'direction' must be 'left' or 'right'" },
-      400,
-    );
-  }
+  const options = marqueeQuery(c.req.query());
+  if ("error" in options) return c.json({ error: options.error }, 400);
 
   const result = await loadIcons(c.req.query("i"));
   if ("error" in result) {
@@ -77,26 +17,7 @@ marqueeRoutes.get("/", async (c) => {
 
   return svgResponse(
     c,
-    renderIconMarquee(result.svgs, {
-      ...visual.value,
-      widthPx:
-        "value" in numberParams.widthPx
-          ? numberParams.widthPx.value
-          : undefined,
-      heightPx:
-        "value" in numberParams.heightPx
-          ? numberParams.heightPx.value
-          : undefined,
-      gapPx:
-        "value" in numberParams.gapPx ? numberParams.gapPx.value : undefined,
-      speedPxPerS:
-        "value" in numberParams.speedPxPerS
-          ? numberParams.speedPxPerS.value
-          : undefined,
-      direction,
-      order,
-      seed: seed.value,
-    }),
+    renderIconMarquee(result.svgs, options.value),
     result.unknown,
   );
 });

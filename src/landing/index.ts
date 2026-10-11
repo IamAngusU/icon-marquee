@@ -47,13 +47,19 @@ export function createLandingPage(staticSite = false) {
     <div class="workspace">
       <div class="selection-panel">
         <details class="import-panel"><summary>Open an existing design</summary><p class="field-help">Drop an Icon Marquee SVG or HTML export here, or paste it below. Import replaces this design. Everything stays local.</p><input id="project-file" type="file" accept=".svg,.html,.htm" hidden /><div class="secondary-actions"><button id="open-project" type="button">Choose SVG / HTML</button></div><label class="sr-only" for="project-source">SVG or HTML to import</label><textarea id="project-source" rows="3" spellcheck="false" placeholder="Paste your export…"></textarea><button id="import-project" type="button" class="upload-button">Import design</button><p class="field-help" id="import-status" role="status"></p></details>
+        <div class="source-picker"><span class="input-label">Icon source</span><div class="segmented source-tabs" role="group" aria-label="Icon source"><button type="button" data-source="manual" aria-pressed="true">Manual</button><button type="button" data-source="github" aria-pressed="false">GitHub Auto</button></div></div>
+        <div id="github-source" class="github-source" hidden>
+          <label class="input-label" for="github-repository">Public repository</label>
+          <div class="github-repo-row"><input id="github-repository" class="field-input" autocomplete="off" spellcheck="false" placeholder="github.com/owner/repository" /><button id="connect-github" class="upload-button" type="button">Connect</button></div>
+          <p id="github-source-status" class="connection-status" role="status">Paste a public GitHub repository. No account or permissions needed.</p>
+          <div id="detected-languages" hidden><span class="input-label">Detected languages</span><div id="github-language-list" class="language-list"></div></div>
+          <div class="override-grid"><div><label class="input-label" for="github-include">Pinned icons</label><input id="github-include" class="field-input" autocomplete="off" spellcheck="false" placeholder="react, docker" /></div><div><label class="input-label" for="github-exclude">Excluded icons</label><input id="github-exclude" class="field-input" autocomplete="off" spellcheck="false" placeholder="html, css" /></div></div>
+          <p class="field-help">Optional comma-separated overrides. Custom uploads stay in Manual.</p>
+        </div>
         <div class="section-heading"><h2>Your lineup <span id="selection-count">6</span></h2><button id="clear" class="text-button" type="button">Clear all</button></div>
         <p class="section-help" id="reorder-help">Drag to reorder. Or focus an icon and press Alt + arrow keys.</p>
         <ul id="selected" class="selected-icons" aria-label="Selected icons" aria-describedby="reorder-help"></ul>
-        <label class="input-label" for="icons">Icon names</label>
-        <input id="icons" class="field-input" value="${config.landing.playgroundIcons}" autocomplete="off" spellcheck="false" aria-describedby="names-help" />
-        <p class="field-help" id="names-help">Comma-separated. Short names like js, ts, react and py work too.</p>
-        <div class="presets" role="group" aria-label="Stack presets"><span>Start with</span><button data-preset="frontend" type="button">Frontend</button><button data-preset="backend" type="button">Backend</button><button data-preset="creative" type="button">Creative</button><button data-preset="ai" type="button">AI tools</button></div>
+        <div id="manual-source"><label class="input-label" for="icons">Icon names</label><input id="icons" class="field-input" value="${config.landing.playgroundIcons}" autocomplete="off" spellcheck="false" aria-describedby="names-help" /><p class="field-help" id="names-help">Comma-separated. Short names like js, ts, react and py work too.</p><div class="presets" role="group" aria-label="Stack presets"><span>Start with</span><button data-preset="frontend" type="button">Frontend</button><button data-preset="backend" type="button">Backend</button><button data-preset="creative" type="button">Creative</button><button data-preset="ai" type="button">AI tools</button></div></div>
         <section id="library" class="library" aria-labelledby="library-heading">
           <div class="section-heading"><h2 id="library-heading">Find your icons</h2><button id="add-logos" class="upload-button" type="button">＋ Your logos</button></div>
           <input id="logo-files" type="file" accept=".svg,.png,.jpg,.jpeg,.webp" multiple hidden />
@@ -111,10 +117,10 @@ export function createLandingPage(staticSite = false) {
   </section>
 
   <section id="reference" class="reference" aria-labelledby="reference-heading">
-    <div class="reference-intro"><h2 id="reference-heading">One URL.<br /> Endless loops.</h2><p>No account, no API key, no JavaScript in your embed. Just an SVG.</p><a href="/llms.txt">Full API guide ↗</a></div>
+    <div class="reference-intro"><h2 id="reference-heading">Paste once.<br /> Stay current.</h2><p>Connect a public GitHub repository and its detected languages keep the marquee fresh.</p><a href="./llms.txt">Full API guide ↗</a></div>
     <div class="reference-content">
-      <div class="endpoint"><code>/v1/marquee?i=js,ts,react</code><p>A seamless, animated row. Use <code>/v1/icons</code> for a static one.</p></div>
-      <dl class="parameter-list"><div><dt>i</dt><dd>Icon names or aliases, in order. Up to 100.</dd></div><div><dt>width</dt><dd>Window width, 1–3840 px. Marquee only.</dd></div><div><dt>height / gap</dt><dd>Icon size, 20–128 px. Spacing, 0–96 px.</dd></div><div><dt>speed / direction</dt><dd>5–200 px/s. Scroll left or right.</dd></div></dl>
+      <div class="endpoint"><code>/api/owner/repository.svg</code><p>One live SVG. Languages come from GitHub; appearance stays yours.</p></div>
+      <dl class="parameter-list"><div><dt>Public repos</dt><dd>No workflow, account or repository permissions.</dd></div><div><dt>Overrides</dt><dd>Pin extra icons or exclude detected languages.</dd></div><div><dt>Appearance</dt><dd>Width, motion, shuffle, themes and finishes still work.</dd></div><div><dt>Static option</dt><dd>Download the current SVG whenever you want a frozen copy.</dd></div></dl>
     </div>
   </section>
 </main>

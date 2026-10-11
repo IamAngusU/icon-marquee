@@ -11,6 +11,9 @@ describe("GET /llms.txt", () => {
     expect(body.startsWith("# icon-marquee")).toBe(true);
     expect(body).toContain("https://example.test/v1/marquee?i=");
     expect(body).toContain(
+      "https://example.test/api/IamAngusU/icon-marquee.svg",
+    );
+    expect(body).toContain(
       "[![My stack](./icon-marquee.svg)](https://github.com/IamAngusU/icon-marquee)",
     );
   });

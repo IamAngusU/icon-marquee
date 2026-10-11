@@ -15,8 +15,8 @@
     "hono": "^4.13.12"
   },
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
-    "start": "bun run src/index.ts",
+    "dev": "bun run --hot src/server.ts",
+    "start": "bun run src/server.ts",
     "prepare": "husky",
     "typecheck": "tsc --noEmit",
     "lint": "biome lint .",

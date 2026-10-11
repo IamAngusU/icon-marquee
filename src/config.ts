@@ -181,6 +181,13 @@ const ICON_ALIASES: Readonly<Record<string, string>> = {
 
 export const config = {
   appName: process.env.APP_NAME?.trim() || "icon-marquee",
+  github: {
+    apiToken: process.env.GITHUB_API_TOKEN?.trim() || "",
+    cacheFreshMs: 60 * 60 * 1000,
+    cacheStaleMs: 7 * 24 * 60 * 60 * 1000,
+    maxCacheEntries: 500,
+    requestTimeoutMs: 5000,
+  },
   icons: {
     maxPerRequest: 100,
     aliases: ICON_ALIASES,

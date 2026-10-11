@@ -17,6 +17,19 @@ Base URL: ${origin}
 
 ## Endpoints
 
+### GET /api/:owner/:repository.svg
+Live SVG for a public GitHub repository. The service reads GitHub's language summary, maps supported languages to bundled icons, and orders them by byte share. No GitHub workflow, user account or repository token is required.
+
+Query parameters:
+- \`include\` (optional): comma-separated extra icon names for frameworks, databases and tools that language statistics cannot detect. Max 50.
+- \`exclude\` (optional): comma-separated detected or included icon names to hide. Max 100.
+- \`mode=icons\` (optional): return a static row instead of a marquee.
+- All geometry, motion, theme and effect options documented below are also supported; \`i\` is ignored because the repository supplies the detected lineup.
+
+Example: \`${origin}/api/IamAngusU/icon-marquee.svg?include=bun,hono,docker&width=760&height=56\`
+
+The companion \`GET /api/:owner/:repository.json\` response contains \`languages\` with byte counts, percentages and mapped icons; \`icons\`, \`unsupported\`, \`selectedIcons\`, \`unknownIncludes\` and the current \`cache\` state. Only public repositories are supported. Successful GitHub results are cached for one hour, revalidated with an ETag, and retained as a seven-day last-known-good fallback for temporary upstream failures. SVG responses use \`Cache-Control: public, no-cache\` so image proxies can revalidate them.
+
 ### GET /v1/marquee
 Animated SVG that scrolls the icons left in a seamless loop at ${marquee.speedPxPerS}px/s. ${icons.heightPx}px tall. Stops for viewers with reduced motion enabled.
 
@@ -58,6 +71,8 @@ Icons with light and dark versions follow the embedding page's color scheme by d
 Both SVG endpoints accept \`effect=none|glint|chrome|holo\`, \`intensity=0..100\`, \`effectDuration=1..20\` seconds, \`effectInterval=0..30\` seconds and \`effectVariation=0..100\` percent. Defaults are none, 35, 5, 3 and 55. Use \`effectArea=surface|border\`, \`effectTiming=stagger|random|sync\` and \`effectCoverage=all|some|selected\`. Selected coverage uses zero-based \`effectIndices=0,2\` into the loaded, deduplicated asset list. Marquees accept \`edgeFade=0..96\` px (default off). Effects are script-free; random timing repeats a seeded eight-sweep schedule with varied entry edges, directions and path offsets per asset, while repeated instances receive independent phases. Hover-to-pause and eased pause/resume are editor-only, and per-icon titles require inline SVG/HTML rather than README images. New composer exports include safe project metadata for re-import; API SVGs do not.
 
 ## Repository use and custom logos
+
+For an automatically maintained public-repository embed, use \`[![My stack](${origin}/api/OWNER/REPOSITORY.svg)](https://github.com/IamAngusU/icon-marquee)\`. Pin non-language technologies with \`include\` and remove unwanted detections with \`exclude\`.
 
 Download an SVG and commit it beside the README: \`[![My stack](./icon-marquee.svg)](https://github.com/IamAngusU/icon-marquee)\`. No hosted API is needed for that file. URL embeds need a publicly reachable server.
 

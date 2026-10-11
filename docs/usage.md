@@ -36,7 +36,21 @@ hoverPause: true
 
 Intensity and random speed variation are 0–100%, sweep duration is 1–20 seconds, sweep interval is 0–30 seconds, edge fade is 0–96px, pause duration is 100–2000 milliseconds, and Bézier coordinates stay between 0 and 1. Partial presets start from defaults. Copy YAML or an editor link to share settings. Custom logos require the actual export. Reduced-motion preferences override animation.
 
-## Put it in a repository
+## GitHub Auto-Sync
+
+Choose **GitHub Auto**, paste a public GitHub URL or `owner/repository`, and connect. The composer reads GitHub's language summary, orders supported icons by byte share, and produces a hosted SVG URL:
+
+```md
+[![My tech stack](https://angusu.de/icon-marquee/api/OWNER/REPOSITORY.svg)](https://github.com/IamAngusU/icon-marquee)
+```
+
+The image is refreshed by Icon Marquee's cache, so the consuming repository needs no workflow, account, access token, bot commit or generated file. GitHub language statistics describe source languages, not the complete stack: use **Pinned icons** for frameworks, databases and tools, and **Excluded icons** to hide detections. Both fields accept comma-separated icon names and are carried into the live URL as `include` and `exclude`.
+
+Only public repositories work. The service caches a successful result for one hour, revalidates with GitHub's ETag, and can serve the last successful result for up to seven days during a temporary GitHub failure. Hosted SVGs add a content-derived ETag and `Cache-Control: no-cache` for image-proxy revalidation; updates are not guaranteed to appear instantly in every client.
+
+Custom logos remain local and cannot be part of a hosted URL. Use the downloaded option for custom assets, private repositories, or a permanently frozen lineup.
+
+## Put a frozen SVG in a repository
 
 Download `icon-marquee.svg` (or `icon-row.svg` for static output), commit it beside your README and use the generated Markdown:
 
@@ -78,6 +92,8 @@ Download before refreshing: local logos live in memory, not browser storage. Edi
 
 | Endpoint | Result |
 | --- | --- |
+| `GET /api/:owner/:repo.svg` | Live SVG from a public repository's GitHub languages |
+| `GET /api/:owner/:repo.json` | Detected languages, percentages, icon mapping and cache state |
 | `GET /v1/marquee?i=js,ts,react` | Animated SVG |
 | `GET /v1/icons?i=js,ts,react` | Static SVG |
 | `GET /v1/assets?i=js,ts,react` | Original SVG strings, aligned names and unknown names |
@@ -104,6 +120,8 @@ All numeric options require decimal digits. Order and duplicates are preserved b
 
 SVGs use CSS animation and no JavaScript. Built-in themed icons follow the viewer's color scheme. The editor surface switch only changes the preview, not the downloaded asset. Responses cache for one day.
 
+GitHub Auto SVGs accept the same appearance, geometry, motion and theme options, plus `mode=icons`, `include=name,name` and `exclude=name,name`. They use `public, no-cache` so GitHub's image proxy can revalidate the live result. The JSON endpoint exposes `languages`, `icons`, `unsupported`, `selectedIcons`, `unknownIncludes` and the current `cache` state.
+
 Both SVG endpoints also accept `effect=none|glint|chrome|holo`, `intensity=0..100`, `effectDuration=1..20`, `effectInterval=0..30`, `effectVariation=0..100`, `effectArea=surface|border`, `effectTiming=stagger|random|sync`, `effectCoverage=all|some|selected`, and comma-separated, zero-based `effectIndices=0,2` for selected mode. Indices refer to loaded assets after shuffle deduplication. `edgeFade=0..96` applies only to marquee. API fade defaults to off; the editor defaults to 24px.
 
 Both endpoints accept `theme=auto|light|dark`. Auto is the default; themed SVGs inherit the embedding page's color scheme in modern browsers. GitHub sets that scheme from its selected theme, so a single adaptive SVG covers light and dark. Logos without theme variants do not change. If targeting an older image client, `theme=light` or `theme=dark` can create explicit variants for a `<picture>` fallback.
@@ -117,9 +135,9 @@ bun install --frozen-lockfile
 bun dev
 ```
 
-`bun dev` runs with hot reload; `bun start` runs production. `PORT` defaults to 3000. Optional `APP_NAME` defaults to `icon-marquee`. The server uses Bun/Hono; there is no frontend build step.
+`bun dev` runs with hot reload; `bun start` runs production. `HOST` defaults to `127.0.0.1` and `PORT` to 3000. Optional `APP_NAME` defaults to `icon-marquee`. `GITHUB_API_TOKEN` is optional and raises GitHub's server-side API allowance for a public deployment; never expose it to the browser. The server uses Bun/Hono; there is no frontend build step.
 
-`bun run build:static` exports a portable, browser-only generator to `dist/`. It uses relative local icon assets and no API backend, so it can also live on GitHub Pages or another static host. API URL export is hidden because static hosting does not run the optional HTTP API. The public build is deployed from `dist/` at `https://angusu.de/icon-marquee/`.
+`bun run build:static` exports the generator to `dist/` with relative local icon assets. Manual composition, previews, imports and downloads are browser-only and portable to GitHub Pages or another static host. GitHub Auto additionally needs the same-origin `/api` route from the Bun service. The build also writes `llms.txt`; set `PUBLIC_BASE_URL` when deploying anywhere other than the default `https://angusu.de/icon-marquee`. The public build is deployed from `dist/` at that URL, with its API route proxied to the service.
 
 Deploy to a Bun-compatible host, or use Vercel's Hono preset with the included Bun configuration. No authentication is built in. Source visibility and endpoint access are independent: a private source repo does not protect a deployed API.
 

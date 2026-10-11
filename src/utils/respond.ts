@@ -8,9 +8,10 @@ export function svgResponse(
   c: Context,
   svg: string,
   unknown: readonly string[],
+  cacheControl = `public, max-age=${config.icons.cacheMaxAgeS}`,
 ): Response {
   c.header("Content-Type", "image/svg+xml");
-  c.header("Cache-Control", `public, max-age=${config.icons.cacheMaxAgeS}`);
+  c.header("Cache-Control", cacheControl);
   if (unknown.length > 0) {
     c.header(UNKNOWN_ICONS_HEADER, unknown.map(encodeURIComponent).join(","));
   }

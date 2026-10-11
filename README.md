@@ -4,13 +4,25 @@
 
 Static logo walls all look the same. Give your stack a little motion.
 
-Pick from 1,041 icons, add your own logos, and export one animated SVG. No install. No account.
+Pick from 1,041 icons, add your own logos, or let a public GitHub repo keep the lineup current. No install. No account.
 
 [![Open generator](docs/assets/generator.svg?v=2)](https://angusu.de/icon-marquee/)
 
 [![A real Icon Marquee export with a broad mix of icons](docs/assets/icon-marquee_readme.svg)](https://github.com/IamAngusU/icon-marquee)
 
-Or change the width, effect and more:
+## Paste once. Stay current.
+
+GitHub Auto reads the languages GitHub already detects. Pin framework, database or tooling icons that language stats cannot know, then paste one live image:
+
+[![Live Icon Marquee for this repository](https://angusu.de/icon-marquee/api/IamAngusU/icon-marquee.svg?include=bun,hono,github,docker,nginx&height=56&gap=14&width=760&speed=40&edgeFade=24)](https://angusu.de/icon-marquee/)
+
+```md
+[![My tech stack](https://angusu.de/icon-marquee/api/OWNER/REPOSITORY.svg)](https://github.com/IamAngusU/icon-marquee)
+```
+
+No workflow, token, bot commits or generated files in your repo. The hosted SVG refreshes behind a cache; appearance stays configurable in the generator.
+
+Want a frozen asset or your own uploaded logos? Download one self-contained SVG instead:
 
 [![A compact Icon Marquee export with creative tools](docs/assets/icon-marquee-compact.svg)](https://github.com/IamAngusU/icon-marquee)
 

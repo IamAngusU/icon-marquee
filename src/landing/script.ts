@@ -83,6 +83,12 @@ function composer(
     document.querySelectorAll<HTMLButtonElement>("[data-format]");
   const orderButtons =
     document.querySelectorAll<HTMLButtonElement>("[data-order]");
+  const sourceButtons =
+    document.querySelectorAll<HTMLButtonElement>("[data-source]");
+  const githubRepository = element<HTMLInputElement>("github-repository");
+  const githubInclude = element<HTMLInputElement>("github-include");
+  const githubExclude = element<HTMLInputElement>("github-exclude");
+  const githubConnect = element<HTMLButtonElement>("connect-github");
   const logoInput = element<HTMLInputElement>("logo-files");
   const customLogos = new Map<string, LocalLogo>();
   const assetCache = new Map<string, string>();
@@ -140,6 +146,17 @@ function composer(
   let svg = "";
   let exportUrl = "";
   let dragIndex = -1;
+  let source: "manual" | "github" = "manual";
+  let manualLineup = input.value;
+  let githubOwner = "";
+  let githubRepo = "";
+  let githubDetectedIcons: string[] = [];
+  let githubLanguages: {
+    name: string;
+    percentage: number;
+    icon?: string;
+  }[] = [];
+  let githubRequest: AbortController | undefined;
 
   const names = () =>
     input.value
@@ -148,6 +165,11 @@ function composer(
       .filter(Boolean);
   const canonical = (name: string) =>
     Object.hasOwn(data.aliases, name) ? (data.aliases[name] ?? name) : name;
+  const csv = (value: string) =>
+    value
+      .split(",")
+      .map((name) => name.trim().toLowerCase())
+      .filter(Boolean);
   const thumbnail = (name: string, height: number) =>
     data.staticSite
       ? `./icons/${encodeURIComponent(canonical(name))}.svg`
@@ -199,6 +221,14 @@ function composer(
 
   function saveState() {
     const state = params();
+    state.set("source", source);
+    if (source === "github" && githubOwner && githubRepo) {
+      state.set("repo", `${githubOwner}/${githubRepo}`);
+      if (githubInclude.value.trim())
+        state.set("include", githubInclude.value.trim());
+      if (githubExclude.value.trim())
+        state.set("exclude", githubExclude.value.trim());
+    }
     state.set("mode", mode);
     state.set("width", controls.width.value);
     state.set("speed", controls.speed.value);
@@ -223,6 +253,19 @@ function composer(
     syncEffectControls();
     livePreview.setMotion(effects);
     if (state.has("i")) input.value = state.get("i") ?? "";
+    source = state.get("source") === "github" ? "github" : "manual";
+    githubOwner = "";
+    githubRepo = "";
+    const storedRepo = state.get("repo") ?? "";
+    const repoParts = storedRepo.split("/");
+    if (repoParts.length === 2) {
+      githubOwner = repoParts[0] ?? "";
+      githubRepo = repoParts[1] ?? "";
+      githubRepository.value = storedRepo;
+    }
+    githubInclude.value = state.get("include") ?? "";
+    githubExclude.value = state.get("exclude") ?? "";
+    if (source === "github") githubDetectedIcons = [...names().map(canonical)];
     mode = state.get("mode") === "icons" ? "icons" : "marquee";
     direction = state.get("direction") === "right" ? "right" : "left";
     surface = state.get("surface") === "light" ? "light" : "dark";
@@ -269,6 +312,7 @@ function composer(
         String(button.dataset.order === order),
       );
     });
+    renderSourceControls();
   }
 
   function syncEffectControls() {
@@ -327,6 +371,193 @@ function composer(
     renderRanges();
   }
 
+  function renderSourceControls() {
+    sourceButtons.forEach((button) => {
+      button.setAttribute(
+        "aria-pressed",
+        String(button.dataset.source === source),
+      );
+    });
+    element("manual-source").hidden = source !== "manual";
+    element("github-source").hidden = source !== "github";
+    element("reorder-help").textContent =
+      source === "github"
+        ? "GitHub orders detected languages by code share. Pin or exclude icons to adjust the lineup."
+        : "Drag to reorder. Or focus an icon and press Alt + arrow keys.";
+    element("clear").textContent =
+      source === "github" ? "Disconnect" : "Clear all";
+    element<HTMLButtonElement>("add-logos").disabled = source === "github";
+  }
+
+  function githubStatus(message: string, connected = false) {
+    const target = element("github-source-status");
+    target.textContent = message;
+    target.dataset.connected = String(connected);
+  }
+
+  function renderGithubLanguages() {
+    const panel = element("detected-languages");
+    const list = element("github-language-list");
+    list.replaceChildren();
+    panel.hidden = githubLanguages.length === 0;
+    for (const language of githubLanguages) {
+      const chip = document.createElement("span");
+      chip.className = `language-chip${language.icon ? "" : " unsupported"}`;
+      chip.textContent = language.name;
+      const share = document.createElement("small");
+      share.textContent = `${language.percentage}%`;
+      chip.append(share);
+      if (!language.icon) chip.title = "No matching bundled icon yet";
+      list.append(chip);
+    }
+  }
+
+  function applyGithubLineup() {
+    const excluded = new Set(csv(githubExclude.value).map(canonical));
+    const pinned = csv(githubInclude.value)
+      .map(canonical)
+      .filter((name) => nameSet.has(name));
+    const list = [
+      ...new Set([
+        ...githubDetectedIcons.filter((name) => !excluded.has(name)),
+        ...pinned,
+      ]),
+    ].filter((name) => !excluded.has(name));
+    input.value = list.join(",");
+    const unknown = csv(githubInclude.value).filter(
+      (name) => !nameSet.has(canonical(name)),
+    );
+    if (unknown.length)
+      githubStatus(
+        `Unknown pinned icons skipped: ${unknown.join(", ")}`,
+        Boolean(githubOwner && githubRepo),
+      );
+    changed();
+  }
+
+  function repositoryParts(value: string) {
+    let text = value
+      .trim()
+      .replace(/\/$/, "")
+      .replace(/\.git$/i, "");
+    if (/^https?:\/\//i.test(text)) {
+      try {
+        const url = new URL(text);
+        if (url.hostname.toLowerCase() !== "github.com") return;
+        text = url.pathname.replace(/^\//, "");
+      } catch {
+        return;
+      }
+    }
+    text = text.replace(/^github\.com\//i, "");
+    const [owner, repo, extra] = text.split("/");
+    if (
+      extra ||
+      !owner ||
+      !repo ||
+      !/^[a-z\d](?:[a-z\d-]{0,38})$/i.test(owner) ||
+      !/^[a-z\d._-]{1,100}$/i.test(repo)
+    )
+      return;
+    return { owner, repo };
+  }
+
+  function githubApiUrl(extension: "json" | "svg") {
+    if (!githubOwner || !githubRepo) return "";
+    return new URL(
+      `./api/${encodeURIComponent(githubOwner)}/${encodeURIComponent(githubRepo)}.${extension}`,
+      location.href,
+    ).href;
+  }
+
+  function githubSvgUrl() {
+    const url = new URL(githubApiUrl("svg"));
+    const appearance = params();
+    appearance.delete("i");
+    if (mode === "icons") appearance.set("mode", "icons");
+    else appearance.delete("mode");
+    const include = csv(githubInclude.value);
+    const exclude = csv(githubExclude.value);
+    if (include.length) appearance.set("include", include.join(","));
+    if (exclude.length) appearance.set("exclude", exclude.join(","));
+    url.search = appearance.toString().replaceAll("%2C", ",");
+    return url.href;
+  }
+
+  async function connectGithub() {
+    const repository = repositoryParts(githubRepository.value);
+    if (!repository) {
+      githubRepository.setAttribute("aria-invalid", "true");
+      githubStatus("Use a public GitHub URL or owner/repository.");
+      return;
+    }
+    githubRequest?.abort();
+    githubRequest = new AbortController();
+    githubConnect.disabled = true;
+    githubStatus("Reading languages from GitHub…");
+    try {
+      const endpoint = new URL(
+        `./api/${encodeURIComponent(repository.owner)}/${encodeURIComponent(repository.repo)}.json`,
+        location.href,
+      );
+      const response = await fetch(endpoint, { signal: githubRequest.signal });
+      const result = (await response.json()) as {
+        error?: string;
+        icons?: string[];
+        languages?: {
+          name: string;
+          percentage: number;
+          icon?: string;
+        }[];
+        unsupported?: string[];
+      };
+      if (!response.ok)
+        throw new Error(result.error ?? "Could not connect this repository.");
+      githubOwner = repository.owner;
+      githubRepo = repository.repo;
+      githubDetectedIcons = result.icons ?? [];
+      githubLanguages = result.languages ?? [];
+      githubRepository.value = `${githubOwner}/${githubRepo}`;
+      githubRepository.removeAttribute("aria-invalid");
+      renderGithubLanguages();
+      githubStatus(
+        `Connected · ${githubDetectedIcons.length} ${githubDetectedIcons.length === 1 ? "icon" : "icons"}${result.unsupported?.length ? ` · ${result.unsupported.length} without a match` : ""}`,
+        true,
+      );
+      applyGithubLineup();
+    } catch (error) {
+      if (githubRequest.signal.aborted) return;
+      githubRepository.setAttribute("aria-invalid", "true");
+      githubStatus(
+        error instanceof Error
+          ? error.message
+          : "Could not connect this repository.",
+      );
+    } finally {
+      githubConnect.disabled = false;
+    }
+  }
+
+  function switchSource(next: "manual" | "github") {
+    if (source === next) return;
+    if (source === "manual") manualLineup = input.value;
+    source = next;
+    if (source === "manual") input.value = manualLineup;
+    else if (!githubDetectedIcons.length) input.value = "";
+    renderSourceControls();
+    if (source === "github" && githubDetectedIcons.length) {
+      applyGithubLineup();
+      githubRepository.focus();
+      return;
+    }
+    changed();
+    if (source === "github") githubRepository.focus();
+  }
+
+  function reconnectSavedGithub() {
+    if (source === "github" && githubOwner && githubRepo) void connectGithub();
+  }
+
   function renderSnippet() {
     if (svg)
       svg = projectCodec.embed(
@@ -338,13 +569,19 @@ function composer(
         ),
       );
     const labels = { markdown: "Markdown", html: "HTML", url: "URL" };
-    const snippetUrl = `./icon-${mode === "marquee" ? "marquee" : "row"}.svg`;
+    const automatic = source === "github" && githubOwner && githubRepo;
+    const snippetUrl = automatic
+      ? githubSvgUrl()
+      : `./icon-${mode === "marquee" ? "marquee" : "row"}.svg`;
+    const markdown = `[![My tech stack](${snippetUrl})](https://github.com/IamAngusU/icon-marquee)`;
     snippet.value = !exportUrl
       ? ""
       : format === "markdown"
-        ? `[![My tech stack](${snippetUrl})](https://github.com/IamAngusU/icon-marquee)`
+        ? markdown
         : format === "html"
-          ? svg
+          ? automatic
+            ? `<a href="https://github.com/IamAngusU/icon-marquee"><img src="${snippetUrl.replaceAll("&", "&amp;")}" alt="My tech stack" /></a>`
+            : svg
           : exportUrl;
     copy.replaceChildren(document.createTextNode(`Copy ${labels[format]}`));
     const symbol = document.createElement("span");
@@ -422,15 +659,22 @@ function composer(
     const list = names();
     element("selection-count").textContent = String(list.length);
     list.forEach((name, index) => {
+      const automatic =
+        source === "github" && githubDetectedIcons.includes(canonical(name));
       const li = document.createElement("li");
       li.tabIndex = 0;
-      li.draggable = true;
+      li.draggable = source === "manual";
+      li.dataset.automatic = String(automatic);
       li.setAttribute(
         "aria-label",
-        name +
-          ", position " +
-          (index + 1) +
-          ". Alt plus left or right arrow to move.",
+        automatic
+          ? `${name}, detected by GitHub, position ${index + 1}.`
+          : name +
+              ", position " +
+              (index + 1) +
+              (source === "manual"
+                ? ". Alt plus left or right arrow to move."
+                : ". Pinned icon."),
       );
       if (nameSet.has(canonical(name)) || customLogos.has(name)) {
         const img = document.createElement("img");
@@ -440,11 +684,30 @@ function composer(
       }
       const label = document.createElement("span");
       label.textContent = customLogos.get(name)?.label ?? name;
+      if (automatic) {
+        const origin = document.createElement("span");
+        origin.className = "origin-badge";
+        origin.textContent = "GitHub";
+        li.append(label, origin);
+      } else li.append(label);
       const remove = document.createElement("button");
       remove.type = "button";
       remove.textContent = "×";
       remove.setAttribute("aria-label", `Remove ${name}`);
       remove.addEventListener("click", () => {
+        if (source === "github") {
+          if (automatic) {
+            githubExclude.value = [
+              ...new Set([...csv(githubExclude.value), canonical(name)]),
+            ].join(",");
+          } else {
+            githubInclude.value = csv(githubInclude.value)
+              .filter((item) => canonical(item) !== canonical(name))
+              .join(",");
+          }
+          applyGithubLineup();
+          return;
+        }
         const current = names();
         current.splice(index, 1);
         input.value = current.join(",");
@@ -455,25 +718,32 @@ function composer(
             | undefined
         )?.focus();
       });
-      li.append(label, remove);
+      li.append(remove);
       li.addEventListener("keydown", (event) => {
-        if (event.altKey && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
+        if (
+          source === "manual" &&
+          event.altKey &&
+          ["ArrowLeft", "ArrowRight"].includes(event.key)
+        ) {
           event.preventDefault();
           reorder(index, index + (event.key === "ArrowLeft" ? -1 : 1));
         }
       });
       li.addEventListener("dragstart", (event) => {
+        if (source !== "manual") return;
         dragIndex = index;
         li.classList.add("dragging");
         event.dataTransfer?.setData("text/plain", String(index));
         if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
       });
       li.addEventListener("dragover", (event) => {
+        if (source !== "manual") return;
         event.preventDefault();
         li.classList.add("drag-over");
       });
       li.addEventListener("dragleave", () => li.classList.remove("drag-over"));
       li.addEventListener("drop", (event) => {
+        if (source !== "manual") return;
         event.preventDefault();
         reorder(dragIndex, index);
         dragIndex = -1;
@@ -534,6 +804,32 @@ function composer(
       button.append(img, label);
       button.addEventListener("click", () => {
         const list = names();
+        if (source === "github") {
+          const detected = githubDetectedIcons.includes(name);
+          if (list.some((item) => canonical(item) === name)) {
+            if (detected)
+              githubExclude.value = [
+                ...new Set([...csv(githubExclude.value), name]),
+              ].join(",");
+            else
+              githubInclude.value = csv(githubInclude.value)
+                .filter((item) => canonical(item) !== name)
+                .join(",");
+          } else {
+            githubExclude.value = csv(githubExclude.value)
+              .filter((item) => canonical(item) !== name)
+              .join(",");
+            if (!detected)
+              githubInclude.value = [
+                ...new Set([...csv(githubInclude.value), name]),
+              ].join(",");
+          }
+          applyGithubLineup();
+          catalog
+            .querySelector<HTMLButtonElement>(`[data-icon="${name}"]`)
+            ?.focus();
+          return;
+        }
         if (list.some((item) => canonical(item) === name)) {
           input.value = list
             .filter((item) => canonical(item) !== name)
@@ -665,12 +961,14 @@ function composer(
           : renderer.icons(currentSvgs, renderOptions());
       svg = projectCodec.embed(svg, projectState(known));
       hasLocal = known.some((name) => customLogos.has(name));
+      const automatic = source === "github" && githubOwner && githubRepo;
       share.disabled = hasLocal;
       formatButtons.forEach((button) => {
         button.disabled =
-          (hasLocal || data.staticSite) && button.dataset.format === "url";
-        if (data.staticSite && button.dataset.format === "url")
-          button.hidden = true;
+          (hasLocal || (data.staticSite && !automatic)) &&
+          button.dataset.format === "url";
+        if (button.dataset.format === "url")
+          button.hidden = data.staticSite && !automatic;
       });
       if (hasLocal && format === "url") {
         format = "markdown";
@@ -681,13 +979,16 @@ function composer(
           );
         });
       }
-      exportUrl =
-        hasLocal || data.staticSite
+      exportUrl = automatic
+        ? githubSvgUrl()
+        : hasLocal || data.staticSite
           ? `./icon-${mode === "marquee" ? "marquee" : "row"}.svg`
           : `${location.origin}/v1/${mode}?${params().toString().replaceAll("%2C", ",")}`;
-      element("export-note").textContent = hasLocal
-        ? "Download the SVG beside your README. Your logos stay in this browser until reloaded; editor links cannot include them."
-        : "Download the SVG beside your README, then paste the snippet. One file adapts to light and dark.";
+      element("export-note").textContent = automatic
+        ? "Paste once. GitHub languages refresh automatically; download the SVG only when you want a frozen copy."
+        : hasLocal
+          ? "Download the SVG beside your README. Your logos stay in this browser until reloaded; editor links cannot include them."
+          : "Download the SVG beside your README, then paste the snippet. One file adapts to light and dark.";
       renderPreview();
       renderSnippet();
       setExportEnabled(true);
@@ -788,6 +1089,9 @@ function composer(
         ...[...logos.keys()].map((key) => Number(key.slice(7))),
       );
       input.value = project.names.join(",");
+      source = "manual";
+      manualLineup = input.value;
+      githubRequest?.abort();
       for (const [key, field] of Object.entries(controls))
         field.value = String(project[key as keyof typeof controls]);
       ({ mode, direction, order, seed, surface, effects } = project);
@@ -796,8 +1100,7 @@ function composer(
       search.value = "";
       syncEffectControls();
       livePreview.setMotion(effects);
-      saveState();
-      restoreState();
+      renderSourceControls();
       changed();
       element<HTMLTextAreaElement>("project-source").value = "";
       importStatus.textContent = `Design restored. ${project.names.length} icons${logos.size ? `, including ${logos.size} local ${logos.size === 1 ? "logo" : "logos"}` : ""}.`;
@@ -896,6 +1199,20 @@ function composer(
   }
 
   input.addEventListener("input", changed);
+  sourceButtons.forEach((button) => {
+    button.addEventListener("click", () =>
+      switchSource(button.dataset.source === "github" ? "github" : "manual"),
+    );
+  });
+  githubConnect.addEventListener("click", () => void connectGithub());
+  githubRepository.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      void connectGithub();
+    }
+  });
+  githubInclude.addEventListener("input", applyGithubLineup);
+  githubExclude.addEventListener("input", applyGithubLineup);
   search.addEventListener("input", () => {
     catalogPage = 0;
     renderCatalog();
@@ -940,7 +1257,24 @@ function composer(
     if (file) void importFile(file);
   });
   element("clear").addEventListener("click", () => {
+    if (source === "github") {
+      githubRequest?.abort();
+      githubOwner = "";
+      githubRepo = "";
+      githubDetectedIcons = [];
+      githubLanguages = [];
+      githubRepository.value = "";
+      githubInclude.value = "";
+      githubExclude.value = "";
+      renderGithubLanguages();
+      githubStatus(
+        "Paste a public GitHub repository. No account or permissions needed.",
+      );
+      switchSource("manual");
+      return;
+    }
     input.value = "";
+    manualLineup = "";
     changed();
     input.focus();
   });
@@ -1045,7 +1379,9 @@ function composer(
     .querySelectorAll<HTMLButtonElement>("[data-preset]")
     .forEach((button) => {
       button.addEventListener("click", () => {
+        if (source === "github") switchSource("manual");
         input.value = presets[button.dataset.preset ?? ""] ?? input.value;
+        manualLineup = input.value;
         changed();
       });
     });
@@ -1198,11 +1534,13 @@ function composer(
     if (location.hash.startsWith("#i=")) {
       restoreState();
       changed();
+      reconnectSavedGithub();
     }
   });
 
   restoreState();
   changed();
+  reconnectSavedGithub();
 }
 
 export function createClientScript(staticSite = false) {

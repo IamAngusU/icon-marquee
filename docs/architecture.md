@@ -7,7 +7,10 @@ Bun 1.4.2+, Hono, strict TypeScript, Biome and Husky. The app has no frontend fr
 ```text
 src/
   index.ts               Root Hono app
+  server.ts              Explicit loopback-bound Bun production server
   config.ts              Environment defaults, aliases and limits
+  github/
+    languages.ts         GitHub Linguist mapping, ETag cache and stale fallback
   landing/
     index.ts             HTML and SHA-256 hash of the client script
     styles.ts            Responsive composer styles
@@ -35,6 +38,7 @@ src/
     icons/               Static SVG endpoint
     marquee/             Animated SVG endpoint
     landing/             Page and favicon
+    github/              Public-repository JSON and dynamic SVG endpoints
     llms/                Text API guide
     root/                Health check
 public/icons/            Upstream SVGs and license
@@ -55,6 +59,8 @@ The startup registry indexes only actual filenames. User input resolves through 
 | `/` | Composer |
 | `/logo.svg` | Adaptive pixel-heart favicon |
 | `/llms.txt` | Origin-aware API guide |
+| `/api/:owner/:repo.json` | GitHub languages, icon mapping and cache state |
+| `/api/:owner/:repo.svg` | Live repository-driven marquee or static row |
 | `/v1` | Health JSON |
 | `/v1/catalog` | Canonical names and aliases |
 | `/v1/assets?i=...` | Aligned names/SVGs and unknown names |
@@ -64,6 +70,8 @@ The startup registry indexes only actual filenames. User input resolves through 
 Both SVG endpoints accept `height` and `gap`. Marquee additionally accepts `width`, `speed`, `direction`, `order` and `seed`. All numeric options accept decimal digits only and validate their bounds against config. Defaults retain upstream geometry: 48px icons, 44 viewBox units between icons, a maximum default 400px window, leftward motion at 30px/s.
 
 SVG responses use `image/svg+xml` and cache for one day. Skipped names are URL-encoded in `X-Unknown-Icons`. Validation failures return 400 JSON.
+
+The GitHub route only calls the fixed `api.github.com/repos/:owner/:repo/languages` origin for validated public owner/repository names. It maps GitHub Linguist names to the bundled registry, then applies validated `include` and `exclude` overrides. A bounded in-memory cache keeps fresh results for one hour, revalidates with ETags, deduplicates concurrent fetches and retains the last successful payload for seven days of temporary upstream failure. Repository misses are never hidden by stale data. `GITHUB_API_TOKEN` is an optional server-only deployment secret. Dynamic SVGs add a content-derived ETag and use `public, no-cache` for downstream revalidation rather than the one-day cache of manual API URLs.
 
 ## SVG geometry
 
@@ -81,7 +89,9 @@ Glint, Chrome and Holo use reusable SVG gradient/clip definitions and overlays, 
 
 The page uses a blue-gray/white palette, a navy preview canvas, blue actions and Space Grotesk headings with system text. Fonts come from Google Fonts with local fallbacks.
 
-The left panel contains selected icons, text input, presets and a 24-item paginated catalog with a fixed-height, locally scrolling viewport. Search resets the page and includes aliases. Items support removal, drag reordering and Alt+Left/Right keyboard reordering. The right panel controls SVG output and exports; the preview stays sticky on desktop.
+The left panel begins with a compact Manual/GitHub Auto source switch. Manual contains the selected icon input and presets. GitHub Auto connects a public repository, shows GitHub's weighted language result, and distinguishes detected icons from user-pinned icons. Removing a detected icon writes an exclusion; catalog additions become pins. Custom uploads stay Manual because local files cannot be represented by a hosted URL.
+
+Both sources share the selected lineup and 24-item paginated catalog with a fixed-height, locally scrolling viewport. Search resets the page and includes aliases. Manual items support drag reordering and Alt+Left/Right keyboard reordering; GitHub order follows language share. The right panel controls SVG output and exports; the preview stays sticky on desktop.
 
 The client function in `script.ts` is TypeScript and is serialized with `toString()` after Bun transpilation. It must stay self-contained: do not close over server-only variables or imports. Serializable icon data is passed as a function argument.
 
@@ -109,13 +119,13 @@ Icon names and uploaded filenames enter the DOM through `textContent`, never HTM
 
 ## Runtime and deployment
 
-Bun automatically serves the default Hono export in `src/index.ts`. `bun dev` enables hot reload; `bun start` is the production entry point. `APP_NAME` is optional and defaults in config; Bun handles its standard `PORT` environment variable.
+`src/index.ts` keeps the default Hono export used by tests and Vercel. `src/server.ts` is the explicit Bun entry point for local and VPS runs; it defaults to loopback-only `HOST=127.0.0.1` and `PORT=3000`. `bun dev` enables hot reload and `bun start` runs production. `APP_NAME` and the server-only `GITHUB_API_TOKEN` are optional.
 
 Vercel's Hono preset uses the existing `vercel.json` Bun version setting. `Bun.file` requires Bun, not the default Node runtime. Keep explicit `typeRoots` in tsconfig for Vercel's temporary configuration.
 
 Repository privacy and endpoint access are separate. There is no authentication layer. Deploy only when a public SVG endpoint is wanted, or protect a private instance at the hosting layer. GitHub's image proxy needs a reachable image URL; alternatively commit a downloaded SVG with the consuming README.
 
-The generator has a portable static build of the same composer. `scripts/build-static.ts` writes HTML with its own hashed script CSP, the local SVG catalog, favicon and licenses to `dist/`. Relative icon paths work on subpath hosting. The browser uses those assets instead of `/v1/assets`, and hides API URL export. Keep generated output out of Git and build before publishing. No user logo data is uploaded.
+The generator has a static build of the same composer. `scripts/build-static.ts` writes HTML with its own hashed script CSP, the local SVG catalog, favicon and licenses to `dist/`. Relative icon paths work on subpath hosting. The browser uses those assets instead of `/v1/assets`; Manual remains fully portable and browser-only. GitHub Auto expects a same-origin `/api` reverse proxy to the Bun service, as on the official deployment. Keep generated output out of Git and build before publishing. No user logo data is uploaded.
 
 Hosting is separate from source updates. The portable static build is served from the owner's VPS at `https://angusu.de/icon-marquee/`. ChatGPT Sites is not part of the deployment path.
 
