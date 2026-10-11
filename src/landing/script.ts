@@ -412,6 +412,16 @@ function composer(
     }
   }
 
+  function showGithubConnected() {
+    const unsupported = githubLanguages.filter(
+      (language) => !language.icon,
+    ).length;
+    githubStatus(
+      `Connected · ${githubDetectedIcons.length} ${githubDetectedIcons.length === 1 ? "icon" : "icons"}${unsupported ? ` · ${unsupported} without a match` : ""}`,
+      true,
+    );
+  }
+
   function applyGithubLineup() {
     const excluded = new Set(csv(githubExclude.value).map(canonical));
     const pinned = csv(githubInclude.value)
@@ -432,6 +442,7 @@ function composer(
         `Unknown pinned icons skipped: ${unknown.join(", ")}`,
         Boolean(githubOwner && githubRepo),
       );
+    else if (githubOwner && githubRepo) showGithubConnected();
     changed();
   }
 
@@ -509,7 +520,6 @@ function composer(
           percentage: number;
           icon?: string;
         }[];
-        unsupported?: string[];
       };
       if (!response.ok)
         throw new Error(result.error ?? "Could not connect this repository.");
@@ -520,10 +530,6 @@ function composer(
       githubRepository.value = `${githubOwner}/${githubRepo}`;
       githubRepository.removeAttribute("aria-invalid");
       renderGithubLanguages();
-      githubStatus(
-        `Connected · ${githubDetectedIcons.length} ${githubDetectedIcons.length === 1 ? "icon" : "icons"}${result.unsupported?.length ? ` · ${result.unsupported.length} without a match` : ""}`,
-        true,
-      );
       applyGithubLineup();
     } catch (error) {
       if (githubRequest.signal.aborted) return;
