@@ -1,0 +1,36 @@
+[Unit]
+Description=Icon Marquee GitHub Auto API
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/icon-marquee-api/current
+Environment=NODE_ENV=production
+Environment=HOST=127.0.0.1
+Environment=PORT=4318
+EnvironmentFile=-/etc/icon-marquee.env
+ExecStart=/opt/icon-marquee-api/runtime/node_modules/.bin/bun run src/server.ts
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=10
+UMask=0027
+
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

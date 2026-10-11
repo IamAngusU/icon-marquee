@@ -127,6 +127,8 @@ Repository privacy and endpoint access are separate. There is no authentication 
 
 The generator has a static build of the same composer. `scripts/build-static.ts` writes HTML with its own hashed script CSP, the local SVG catalog, favicon and licenses to `dist/`. Relative icon paths work on subpath hosting. The browser uses those assets instead of `/v1/assets`; Manual remains fully portable and browser-only. GitHub Auto expects a same-origin `/api` reverse proxy to the Bun service, as on the official deployment. Keep generated output out of Git and build before publishing. No user logo data is uploaded.
 
+The checked-in `deploy/` files define the official loopback-only systemd process and its narrow Nginx location. Nginx exposes only `/icon-marquee/api/`, strips the deployment prefix, permits GET/HEAD, applies the site's existing connection/request limits and uses short upstream timeouts. The service runs as `www-data` with a read-only filesystem view, no capabilities and systemd hardening. `/etc/icon-marquee.env` is optional and may contain the server-only GitHub token.
+
 Hosting is separate from source updates. The portable static build is served from the owner's VPS at `https://angusu.de/icon-marquee/`. ChatGPT Sites is not part of the deployment path.
 
 ## Validation
