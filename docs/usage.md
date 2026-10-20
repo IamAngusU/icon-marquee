@@ -150,3 +150,14 @@ bun test
 ```
 
 `check` applies Biome fixes. CI uses read-only `bunx biome check .`. For UI checks, test pause/resume, both directions, shuffle, uploads and errors, static output, snippets/downloads, editor links, keyboard reordering and a narrow viewport. Regenerate the README illustrations with `bun run readme:assets` after changing the renderer.
+
+## Showcase capture and CI
+
+The README video is a real Playwright Chromium 143 recording of the local Bun
+composer, encoded as H.264 MP4. It changes the icon list, switches both preview
+themes, enables Shuffle, pauses/resumes, and downloads an SVG. Browser error
+checks and the SVG export smoke check passed. It uses only bundled icons.
+
+[Public CI](https://github.com/angusu-de/icon-marquee-ci/actions) runs the same
+source commit and checks the canonical main SHA before testing.
+[Runner account context](https://github.com/IamAngusU/IamAngusU/blob/main/ci.md).
